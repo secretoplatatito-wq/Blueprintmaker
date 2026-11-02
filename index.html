@@ -1,0 +1,3842 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#073b78">
+<title>Blueprint Studio CAD &amp; Vector Suite</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap">
+<style>
+:root {
+  --font-main: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+  --ui-blue: #0b5cd5;
+  --ui-blue-light: #5b9cff;
+  --ui-blue-dark: #062b66;
+  --bg-blueprint: #0a4788;
+  --panel-bg: rgba(6, 43, 102, 0.82);
+  --panel-border: rgba(255, 255, 255, 0.28);
+  --panel-shine: rgba(255, 255, 255, 0.55);
+  --accent-cyan: #52dcff;
+  --accent-green: #34d399;
+  --accent-amber: #fbbf24;
+  --accent-rose: #fb7185;
+  --text-main: #ffffff;
+  --text-muted: #c3daf5;
+  --blur-val: 22px;
+  --chroma-val: 1.5px;
+  --radius-lg: 20px;
+  --radius-md: 12px;
+  --radius-sm: 8px;
+  --spring: cubic-bezier(0.34, 1.4, 0.64, 1);
+  --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html, body {
+  margin: 0; padding: 0; width: 100%; height: 100%;
+  overflow: hidden; background: #031530;
+  color: var(--text-main); font-family: var(--font-main);
+  -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: transparent;
+  user-select: none; -webkit-user-select: none;
+}
+input, textarea, select { user-select: text; -webkit-user-select: text; }
+
+.icon {
+  display: inline-block; width: 18px; height: 18px; stroke-width: 1.8;
+  stroke: currentColor; fill: none; stroke-linecap: round; stroke-linejoin: round;
+  vertical-align: middle; flex-shrink: 0;
+}
+.icon-sm { width: 14px; height: 14px; }
+.icon-lg { width: 22px; height: 22px; }
+
+#app {
+  display: grid; grid-template-rows: auto 1fr auto;
+  height: 100dvh; width: 100vw; position: relative; overflow: hidden;
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+
+.glass {
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  box-shadow: inset 0 1px 0 var(--panel-shine), 0 16px 38px rgba(0, 16, 45, 0.45);
+  backdrop-filter: blur(var(--blur-val)) saturate(180%);
+  -webkit-backdrop-filter: blur(var(--blur-val)) saturate(180%);
+  color: #fff;
+}
+body.noglass .glass {
+  background: #082856 !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.topbar {
+  z-index: 50; display: flex; align-items: center; justify-content: space-between;
+  gap: 8px; margin: 8px 12px 4px; padding: 6px 12px;
+  height: 52px; border-radius: var(--radius-lg);
+}
+.brand-group { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.brand-logo {
+  width: 32px; height: 32px; border-radius: 8px;
+  background: linear-gradient(135deg, #44a3ff, #0a4788);
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 4px 12px rgba(68,163,255,0.35);
+}
+.brand-name { font-weight: 800; font-size: 14px; letter-spacing: 0.3px; }
+.brand-name span { color: var(--accent-cyan); font-weight: 500; }
+
+.topbar-scroll {
+  display: flex; align-items: center; gap: 6px; overflow-x: auto;
+  scrollbar-width: none; -ms-overflow-style: none; padding: 0 4px;
+}
+.topbar-scroll::-webkit-scrollbar { display: none; }
+
+button {
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  color: #ffffff; border-radius: var(--radius-sm);
+  padding: 6px 10px; font-size: 12px; font-weight: 600;
+  cursor: pointer; display: inline-flex; align-items: center; gap: 6px;
+  white-space: nowrap; transition: all 0.2s var(--ease);
+}
+button:hover { background: rgba(255, 255, 255, 0.22); transform: translateY(-1px); }
+button:active { transform: scale(0.96); }
+button.active {
+  background: #ffffff; color: #062b66; border-color: #ffffff;
+  box-shadow: 0 4px 14px rgba(255, 255, 255, 0.3);
+}
+button.active .icon { stroke: #062b66; }
+button.btn-accent {
+  background: linear-gradient(135deg, #1aa4ff, #0072e5);
+  border-color: rgba(255, 255, 255, 0.4);
+  box-shadow: 0 4px 14px rgba(0, 114, 229, 0.45);
+}
+button.btn-accent:hover { filter: brightness(1.1); }
+
+.quickbar {
+  display: flex; align-items: center; gap: 4px; padding: 2px 4px;
+  background: rgba(0, 0, 0, 0.22); border-radius: 20px;
+  border: 1px solid rgba(255,255,255,0.1);
+}
+
+.workspace {
+  position: relative; width: 100%; height: 100%; min-height: 0;
+  overflow: hidden; display: block;
+}
+.stage {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  overflow: hidden; touch-action: none; background: var(--bg-blueprint);
+}
+#mainCanvas, #overlayCanvas, #webglCanvas {
+  position: absolute; inset: 0; width: 100%; height: 100%; display: block;
+}
+#webglCanvas { pointer-events: none; z-index: 2; }
+#overlayCanvas { pointer-events: none; z-index: 4; }
+#mainCanvas { z-index: 1; }
+
+.toolbar {
+  position: absolute; left: 14px; top: 12px; bottom: 12px; z-index: 20;
+  width: 58px; border-radius: 22px; display: flex; flex-direction: column;
+  align-items: center; padding: 8px 4px; gap: 4px; overflow-y: auto;
+  scrollbar-width: none;
+}
+.toolbar::-webkit-scrollbar { display: none; }
+.tool-btn {
+  width: 44px; height: 44px; padding: 0; border-radius: 12px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 2px; font-size: 9px; flex-shrink: 0; position: relative;
+}
+.tool-btn .icon { width: 19px; height: 19px; }
+.tool-btn span { font-size: 8px; font-weight: 600; letter-spacing: -0.2px; opacity: 0.9; }
+
+#panelBackdrop {
+  display: none; position: fixed; inset: 0; background: rgba(0, 12, 32, 0.65);
+  backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+  z-index: 998; opacity: 0; transition: opacity 0.25s ease;
+}
+#panelBackdrop.show { display: block; opacity: 1; }
+
+#app .side {
+  position: absolute; right: 14px; top: 12px; bottom: 12px; z-index: 40;
+  width: 370px; border-radius: 24px; display: flex; flex-direction: column;
+  overflow: hidden; transition: transform 0.3s var(--ease), opacity 0.25s ease;
+}
+#app .side.hidden { display: none !important; }
+
+.panel-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 16px 8px; border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  flex-shrink: 0;
+}
+.panel-title {
+  font-size: 13px; font-weight: 800; letter-spacing: 0.5px;
+  text-transform: uppercase; color: var(--accent-cyan);
+  display: flex; align-items: center; gap: 8px;
+}
+.panel-close-btn {
+  width: 28px; height: 28px; border-radius: 8px; padding: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.15);
+}
+
+.panel-tabs {
+  display: flex; gap: 3px; padding: 6px 12px; overflow-x: auto;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  flex-shrink: 0; scrollbar-width: none;
+}
+.panel-tabs::-webkit-scrollbar { display: none; }
+.panel-tab {
+  padding: 5px 8px; font-size: 10px; font-weight: 700; border-radius: 6px;
+  background: transparent; border: 1px solid transparent; color: var(--text-muted);
+}
+.panel-tab:hover { background: rgba(255, 255, 255, 0.06); color: #fff; }
+.panel-tab.active {
+  background: rgba(255, 255, 255, 0.18); border-color: rgba(255, 255, 255, 0.25);
+  color: #fff;
+}
+
+.panel-body {
+  flex: 1; overflow-y: auto; padding: 12px 16px; display: flex;
+  flex-direction: column; gap: 14px; scrollbar-width: thin;
+}
+.panel-tab-content { display: none; flex-direction: column; gap: 12px; }
+.panel-tab-content.active { display: flex; }
+
+.panel-section {
+  background: rgba(0, 20, 50, 0.28); border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--radius-md); padding: 12px; display: flex; flex-direction: column; gap: 10px;
+}
+.section-head { display: flex; align-items: center; justify-content: space-between; }
+.section-title {
+  font-size: 11px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.6px; color: var(--text-muted); display: flex; align-items: center; gap: 6px;
+}
+.pin-btn {
+  background: transparent; border: none; padding: 2px 4px; opacity: 0.45;
+  cursor: pointer; border-radius: 4px;
+}
+.pin-btn:hover { opacity: 0.9; background: rgba(255,255,255,0.1); }
+.pin-btn.pinned { opacity: 1; color: var(--accent-amber); }
+.pin-btn.pinned .icon { stroke: var(--accent-amber); fill: var(--accent-amber); }
+
+.field-row {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 8px; font-size: 11px;
+}
+.field-row label { color: var(--text-muted); flex-shrink: 0; min-width: 80px; }
+.field-row input[type="text"], .field-row input[type="number"], .field-row select, .field-row textarea {
+  background: rgba(0, 16, 45, 0.6); border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px; color: #fff; padding: 5px 8px; font-size: 11px;
+  font-family: var(--font-mono); width: 100%; min-width: 0;
+}
+.field-row input[type="color"] {
+  width: 44px; height: 26px; border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 6px; background: transparent; padding: 1px; cursor: pointer;
+}
+.field-row input[type="range"] {
+  flex: 1; accent-color: var(--accent-cyan); height: 5px; cursor: pointer;
+}
+
+.switch-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 6px 8px; background: rgba(255, 255, 255, 0.04);
+  border-radius: 8px; font-size: 11px; font-weight: 600; cursor: pointer;
+}
+.switch-pill {
+  width: 38px; height: 20px; border-radius: 10px; background: rgba(255, 255, 255, 0.2);
+  position: relative; transition: background 0.25s var(--ease); flex-shrink: 0;
+}
+.switch-pill::after {
+  content: ""; position: absolute; left: 2px; top: 2px; width: 16px; height: 16px;
+  border-radius: 50%; background: #ffffff; box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+  transition: transform 0.25s var(--spring);
+}
+.switch-row.active .switch-pill { background: var(--accent-green); }
+.switch-row.active .switch-pill::after { transform: translateX(18px); }
+
+.brush-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; }
+.brush-card {
+  padding: 8px; background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 8px;
+  display: flex; flex-direction: column; gap: 4px; text-align: left; cursor: pointer;
+  transition: all 0.15s ease;
+}
+.brush-card:hover { background: rgba(255, 255, 255, 0.12); border-color: rgba(255,255,255,0.25); }
+.brush-card.active {
+  background: rgba(82, 220, 255, 0.18); border-color: var(--accent-cyan);
+  box-shadow: 0 0 12px rgba(82, 220, 255, 0.25);
+}
+.brush-card-top { display: flex; align-items: center; gap: 6px; }
+.brush-name { font-size: 11px; font-weight: 700; color: #fff; }
+.brush-cat { font-size: 8px; text-transform: uppercase; color: var(--accent-cyan); font-weight: 700; }
+.brush-preview { height: 14px; width: 100%; border-radius: 3px; background: rgba(0, 0, 0, 0.25); }
+
+.layer-list { display: flex; flex-direction: column; gap: 8px; }
+.layer-card {
+  background: rgba(0, 20, 50, 0.4); border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 10px; padding: 6px 8px; display: flex; flex-direction: column; gap: 6px;
+  transition: border-color 0.2s ease;
+}
+.layer-card.selected {
+  border-color: var(--accent-cyan);
+  background: rgba(14, 60, 130, 0.5);
+  box-shadow: 0 0 10px rgba(82, 220, 255, 0.2);
+}
+.layer-main { display: flex; align-items: center; gap: 8px; }
+.layer-thumb {
+  width: 44px; height: 32px; border-radius: 4px; background: #031530;
+  border: 1px solid rgba(255, 255, 255, 0.2); object-fit: contain; flex-shrink: 0;
+}
+.layer-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.layer-title-bar { display: flex; align-items: center; justify-content: space-between; gap: 4px; }
+.layer-name-input {
+  font-size: 11px; font-weight: 700; background: transparent; border: none;
+  color: #fff; width: 100%; text-overflow: ellipsis; outline: none;
+}
+.layer-name-input:focus { background: rgba(0,0,0,0.3); border-radius: 3px; }
+.layer-controls { display: flex; align-items: center; gap: 4px; }
+.layer-icon-btn {
+  background: transparent; border: none; padding: 3px; cursor: pointer;
+  opacity: 0.6; border-radius: 4px;
+}
+.layer-icon-btn:hover { opacity: 1; background: rgba(255, 255, 255, 0.1); }
+.layer-icon-btn.active { opacity: 1; color: var(--accent-cyan); }
+
+.layer-items-tree {
+  margin-top: 4px; padding-left: 8px; border-left: 2px solid rgba(255, 255, 255, 0.12);
+  display: flex; flex-direction: column; gap: 3px; max-height: 120px; overflow-y: auto;
+}
+.layer-sub-item {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 3px 6px; font-size: 9px; font-family: var(--font-mono);
+  background: rgba(0, 0, 0, 0.2); border-radius: 4px; cursor: pointer;
+}
+.layer-sub-item:hover { background: rgba(255, 255, 255, 0.1); }
+.layer-sub-item.active { background: rgba(82, 220, 255, 0.25); color: #fff; }
+
+.status-bar {
+  z-index: 50; display: flex; align-items: center; justify-content: space-between;
+  gap: 12px; margin: 4px 12px 8px; padding: 4px 14px;
+  height: 32px; border-radius: 12px; font-size: 11px; font-family: var(--font-mono);
+  color: var(--text-muted);
+}
+.status-left, .status-right { display: flex; align-items: center; gap: 12px; }
+.status-tag {
+  background: rgba(255, 255, 255, 0.08); padding: 2px 6px; border-radius: 4px;
+  font-weight: 600; color: #fff;
+}
+.status-tag.pro { background: linear-gradient(135deg, #0077ff, #00d4ff); color: #021a38; font-weight: 800; }
+
+.modal-overlay {
+  position: fixed; inset: 0; z-index: 1000; background: rgba(0, 10, 28, 0.75);
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  display: none; align-items: center; justify-content: center; padding: 16px;
+}
+.modal-overlay.open { display: flex; }
+.modal-window {
+  width: min(560px, 100%); max-height: 90vh; overflow-y: auto;
+  border-radius: var(--radius-lg); padding: 20px; display: flex; flex-direction: column; gap: 14px;
+  box-shadow: 0 24px 60px rgba(0, 8, 24, 0.65);
+}
+.modal-head { display: flex; align-items: center; justify-content: space-between; }
+.modal-title { font-size: 15px; font-weight: 800; color: #fff; display: flex; align-items: center; gap: 8px; }
+
+body.zen-mode .topbar,
+body.zen-mode .toolbar,
+body.zen-mode #app .side,
+body.zen-mode .status-bar,
+body.zen-mode #panelBackdrop {
+  display: none !important;
+}
+#zenExitBtn {
+  display: none; position: fixed; top: 16px; right: 16px; z-index: 9999;
+  background: rgba(6, 43, 102, 0.85); border: 1px solid var(--accent-cyan);
+  padding: 8px 14px; border-radius: 20px; font-weight: 700; color: #fff;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5); backdrop-filter: blur(12px);
+}
+body.zen-mode #zenExitBtn { display: inline-flex; }
+
+#cadCrosshairBadge {
+  position: absolute; pointer-events: none; z-index: 100; display: none;
+  background: rgba(3, 21, 48, 0.88); border: 1px solid var(--accent-cyan);
+  border-radius: 4px; padding: 2px 6px; font-size: 10px; font-family: var(--font-mono);
+  color: var(--accent-cyan); white-space: nowrap; transform: translate(12px, 12px);
+}
+
+#cadProHud {
+  position: absolute; left: 80px; bottom: 16px; z-index: 25; pointer-events: none;
+  background: rgba(3, 21, 48, 0.85); border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px; padding: 6px 12px; font-size: 11px; font-family: var(--font-mono);
+  display: none; gap: 14px; color: var(--accent-cyan); backdrop-filter: blur(8px);
+}
+body.pro-mode #cadProHud { display: flex; }
+
+#toast {
+  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(30px);
+  background: rgba(3, 21, 48, 0.95); border: 1px solid var(--accent-cyan);
+  color: #fff; padding: 8px 18px; border-radius: 20px; font-size: 12px; font-weight: 600;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6); z-index: 2000; opacity: 0; pointer-events: none;
+  transition: all 0.3s var(--spring);
+}
+#toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+
+@media (max-width: 860px) {
+  .topbar { margin: 6px 8px 2px; height: 48px; padding: 4px 8px; gap: 6px; }
+  .brand-name { display: none; }
+  .toolbar {
+    left: 8px; right: 8px; bottom: calc(6px + env(safe-area-inset-bottom));
+    top: auto; width: auto; height: 56px; border-radius: 18px;
+    flex-direction: row; padding: 4px 8px; gap: 6px; overflow-x: auto; overflow-y: hidden;
+  }
+  .tool-btn { width: 44px; height: 44px; min-width: 44px; }
+  #app .side {
+    position: fixed !important; top: 0 !important; bottom: 0 !important; right: 0 !important; left: auto !important;
+    width: min(380px, 92vw) !important; max-width: 100% !important; border-radius: 20px 0 0 20px !important;
+    z-index: 999 !important; transform: translateX(105%); pointer-events: none; opacity: 1;
+    margin: 0 !important; height: 100% !important; display: flex !important;
+  }
+  #app .side.open-mobile {
+    transform: translateX(0) !important; pointer-events: auto !important;
+  }
+}
+</style>
+</head>
+<body>
+
+<svg style="display:none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <g id="icon-cursor"><path d="m3 3 7 18 3-7 7-3L3 3z"/><path d="m13 14 6 6"/></g>
+    <g id="icon-pen"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18z"/><path d="M2 2l7.586 7.586"/></g>
+    <g id="icon-line"><path d="M4 20 20 4"/><circle cx="4" cy="20" r="2"/><circle cx="20" cy="4" r="2"/></g>
+    <g id="icon-rect"><rect x="3" y="3" width="18" height="18" rx="2"/></g>
+    <g id="icon-circle"><circle cx="12" cy="12" r="9"/></g>
+    <g id="icon-arrow"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></g>
+    <g id="icon-text"><path d="M4 7V4h16v3"/><path d="M9 20h6"/><path d="M12 4v16"/></g>
+    <g id="icon-dim"><path d="M2 12h20"/><path d="m6 8-4 4 4 4"/><path d="m18 8 4 4-4 4"/><path d="M2 4v16"/><path d="M22 4v16"/></g>
+    <g id="icon-box"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></g>
+    <g id="icon-pipe"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 1.66 3.58 3 8 3s8-1.34 8-3V5"/></g>
+    <g id="icon-eraser"><path d="m18 14-6 6H4l4-4"/><path d="m14.5 4.5 5 5-9 9-5-5 9-9z"/></g>
+    <g id="icon-image"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></g>
+    <g id="icon-spark"><path d="m12 3 2.8 5.8L21 12l-6.2 3.2L12 21l-2.8-5.8L3 12l6.2-3.2L12 3z"/></g>
+    <g id="icon-panel"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18"/></g>
+    <g id="icon-grid"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M3 15h18"/><path d="M9 3v18"/><path d="M15 3v18"/></g>
+    <g id="icon-snap"><circle cx="12" cy="12" r="3"/><path d="M3 12h3m12 0h3M12 3v3m0 12v3"/></g>
+    <g id="icon-pro"><path d="m14 3-5 5 5 5"/><path d="m10 8 11 11"/></g>
+    <g id="icon-zen"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></g>
+    <g id="icon-undo"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/></g>
+    <g id="icon-redo"><path d="M21 7v6h-6"/><path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3L21 13"/></g>
+    <g id="icon-export"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></g>
+    <g id="icon-pin"><path d="M16 3 21 8l-3 3 1 7-4-4-5 5-2-2 5-5-4-4 7 1z"/></g>
+    <g id="icon-eye"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></g>
+    <g id="icon-lock"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></g>
+    <g id="icon-cross"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></g>
+  </defs>
+</svg>
+
+<div id="app">
+
+  <header class="topbar glass">
+    <div class="brand-group">
+      <div class="brand-logo">
+        <svg class="icon icon-lg" style="stroke:#fff"><use href="#icon-pro"/></svg>
+      </div>
+      <div class="brand-name">BLUEPRINT <span>STUDIO</span></div>
+    </div>
+
+    <div class="topbar-scroll">
+      <button id="topNewBtn" title="Create a new drafting board">
+        <svg class="icon icon-sm"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        <span>New</span>
+      </button>
+      <button id="topUndoBtn" title="Undo (Ctrl+Z)"><svg class="icon icon-sm"><use href="#icon-undo"/></svg></button>
+      <button id="topRedoBtn" title="Redo (Ctrl+Y)"><svg class="icon icon-sm"><use href="#icon-redo"/></svg></button>
+
+      <div class="quickbar" id="quickPinContainer"></div>
+
+      <button id="topAiBtn" class="btn-accent" title="Generate AI Vector Linework">
+        <svg class="icon icon-sm"><use href="#icon-spark"/></svg>
+        <span>AI Vector</span>
+      </button>
+
+      <button id="topExportBtn" title="Export High-Res CAD &amp; Projects">
+        <svg class="icon icon-sm"><use href="#icon-export"/></svg>
+        <span>Export</span>
+      </button>
+
+      <button id="topZenBtn" title="Toggle Clean Mode (Hide all UI)">
+        <svg class="icon icon-sm"><use href="#icon-zen"/></svg>
+      </button>
+
+      <button id="topPanelBtn" class="active" title="Toggle Settings &amp; Inspector Panel">
+        <svg class="icon icon-sm"><use href="#icon-panel"/></svg>
+        <span>Panel</span>
+      </button>
+    </div>
+  </header>
+
+  <div class="workspace">
+    <main class="stage" id="stage">
+      <canvas id="mainCanvas"></canvas>
+      <canvas id="webglCanvas"></canvas>
+      <canvas id="overlayCanvas"></canvas>
+
+      <div id="cadCrosshairBadge">X: 0.0 Y: 0.0</div>
+
+      <div id="cadProHud">
+        <span>X: <strong id="hudX">0</strong></span>
+        <span>Y: <strong id="hudY">0</strong></span>
+        <span>ΔX: <strong id="hudDx">0</strong></span>
+        <span>ΔY: <strong id="hudDy">0</strong></span>
+        <span>DIST: <strong id="hudDist">0</strong></span>
+        <span>ANGLE: <strong id="hudAngle">0°</strong></span>
+      </div>
+
+      <nav class="toolbar glass" aria-label="Drafting Tools">
+        <button class="tool-btn active" data-tool="select" title="Selection &amp; Transform"><svg class="icon"><use href="#icon-cursor"/></svg><span>Select</span></button>
+        <button class="tool-btn" data-tool="pen" title="Freehand &amp; Advanced Brushes"><svg class="icon"><use href="#icon-pen"/></svg><span>Pen</span></button>
+        <button class="tool-btn" data-tool="line" title="Geometric Line"><svg class="icon"><use href="#icon-line"/></svg><span>Line</span></button>
+        <button class="tool-btn" data-tool="rect" title="Rectangle"><svg class="icon"><use href="#icon-rect"/></svg><span>Rect</span></button>
+        <button class="tool-btn" data-tool="ellipse" title="Circle &amp; Ellipse"><svg class="icon"><use href="#icon-circle"/></svg><span>Circle</span></button>
+        <button class="tool-btn" data-tool="arrow" title="Leader &amp; Arrow"><svg class="icon"><use href="#icon-arrow"/></svg><span>Arrow</span></button>
+        <button class="tool-btn" data-tool="text" title="Technical Lettering"><svg class="icon"><use href="#icon-text"/></svg><span>Text</span></button>
+        <button class="tool-btn" data-tool="dimension" title="CAD Dimension Annotation"><svg class="icon"><use href="#icon-dim"/></svg><span>Dim</span></button>
+        <button class="tool-btn" data-tool="block" title="3D Isometric Box"><svg class="icon"><use href="#icon-box"/></svg><span>3D Box</span></button>
+        <button class="tool-btn" data-tool="pipe" title="3D Shaded Pipe / Conduit"><svg class="icon"><use href="#icon-pipe"/></svg><span>3D Pipe</span></button>
+        <button class="tool-btn" data-tool="eraser" title="Precision Eraser Brush"><svg class="icon"><use href="#icon-eraser"/></svg><span>Eraser</span></button>
+        <button class="tool-btn" id="importImgToolBtn" title="Import Image Layer"><svg class="icon"><use href="#icon-image"/></svg><span>Image</span></button>
+      </nav>
+    </main>
+
+    <div id="panelBackdrop"></div>
+
+    <aside class="side glass" id="sideDrawer">
+      <div class="panel-header">
+        <div class="panel-title">
+          <svg class="icon icon-sm"><use href="#icon-panel"/></svg>
+          <span id="panelActiveTitle">Inspector</span>
+        </div>
+        <button class="panel-close-btn" id="closePanelBtn" title="Close Panel">
+          <svg class="icon icon-sm"><use href="#icon-cross"/></svg>
+        </button>
+      </div>
+
+      <div class="panel-tabs" id="panelTabsContainer">
+        <button class="panel-tab active" data-tab="tab-brushes">Brushes</button>
+        <button class="panel-tab" data-tab="tab-layers">Layers</button>
+        <button class="panel-tab" data-tab="tab-objects">Object</button>
+        <button class="panel-tab" data-tab="tab-canvas">Canvas</button>
+        <button class="panel-tab" data-tab="tab-optics">Optics</button>
+        <button class="panel-tab" data-tab="tab-pro">Pro CAD</button>
+        <button class="panel-tab" data-tab="tab-plugins">Plugins</button>
+      </div>
+
+      <div class="panel-body">
+
+        <div class="panel-tab-content active" id="tab-brushes">
+          <div class="panel-section">
+            <div class="section-head">
+              <span class="section-title">Brush Library (20+ Engines)</span>
+              <button class="pin-btn" data-pin="brush-quick" title="Pin brush switch to top bar"><svg class="icon icon-sm"><use href="#icon-pin"/></svg></button>
+            </div>
+            <div class="brush-grid" id="brushLibraryGrid"></div>
+            <div style="display:flex;gap:6px;margin-top:6px">
+              <button id="openBrushStudioBtn" style="flex:1">Open Brush Studio (.brs)</button>
+              <button id="importBrsBtn">Import .brs</button>
+              <input type="file" id="brsFileInput" accept=".brs,.json" hidden>
+            </div>
+          </div>
+
+          <div class="panel-section">
+            <span class="section-title">Stroke Dynamics</span>
+            <div class="field-row">
+              <label>Stroke Color</label>
+              <input type="color" id="propStrokeColor" value="#ffffff">
+              <label style="min-width:50px">Fill</label>
+              <input type="color" id="propFillColor" value="#ffffff">
+            </div>
+            <div class="field-row">
+              <label>Fill Style</label>
+              <select id="propFillMode">
+                <option value="none">None (Wireframe)</option>
+                <option value="solid">Solid Fill</option>
+                <option value="transparent">20% Tint Fill</option>
+                <option value="hatch">45° Engineering Hatching</option>
+              </select>
+            </div>
+            <div class="field-row">
+              <label>Line Width: <strong id="strokeWidthVal">2</strong>px</label>
+              <input type="range" id="propStrokeWidth" min="1" max="64" value="2">
+            </div>
+            <div class="field-row">
+              <label>Opacity: <strong id="opacityVal">100</strong>%</label>
+              <input type="range" id="propOpacity" min="5" max="100" value="100">
+            </div>
+            <div class="field-row">
+              <label>Bezier Smooth: <strong id="smoothingVal">3</strong></label>
+              <input type="range" id="propSmoothing" min="0" max="10" value="3">
+            </div>
+          </div>
+        </div>
+
+        <div class="panel-tab-content" id="tab-layers">
+          <div class="panel-section">
+            <div class="section-head">
+              <span class="section-title">Ibis Paint Layers</span>
+              <div style="display:flex;gap:4px">
+                <button id="layerAddBtn" title="Add Layer"><svg class="icon icon-sm"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
+                <button id="layerDuplicateBtn" title="Duplicate Layer"><svg class="icon icon-sm"><use href="#icon-box"/></svg></button>
+                <button id="layerMergeBtn" title="Merge Down"><svg class="icon icon-sm"><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></button>
+                <button id="layerDeleteBtn" title="Delete Layer"><svg class="icon icon-sm"><use href="#icon-cross"/></svg></button>
+              </div>
+            </div>
+            <div class="layer-list" id="layerListContainer"></div>
+            <div style="display:flex;gap:6px;margin-top:4px">
+              <button id="layerImportImgBtn" style="flex:1"><svg class="icon icon-sm"><use href="#icon-image"/></svg> Import Image</button>
+              <input type="file" id="imageFileInput" accept="image/*" hidden>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel-tab-content" id="tab-objects">
+          <div class="panel-section">
+            <span class="section-title">Object Inspector</span>
+            <div id="objectSelectedStatus" style="font-size:11px;color:var(--text-muted)">No object selected. Click with Select Tool (V) to edit.</div>
+            <div id="objectControlCluster" style="display:none;flex-direction:column;gap:8px">
+              <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px">
+                <button id="objFlipHBtn" title="Flip Horizontal">Flip H</button>
+                <button id="objFlipVBtn" title="Flip Vertical">Flip V</button>
+                <button id="objRot90Btn" title="Rotate 90° CW">+90°</button>
+                <button id="objRot45Btn" title="Rotate 45° CW">+45°</button>
+              </div>
+              <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:4px">
+                <button id="objAlignLBtn">Align L</button>
+                <button id="objAlignCBtn">Align C</button>
+                <button id="objAlignRBtn">Align R</button>
+              </div>
+              <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:4px">
+                <button id="objAlignTBtn">Align T</button>
+                <button id="objAlignMBtn">Align M</button>
+                <button id="objAlignBBtn">Align B</button>
+              </div>
+              <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:4px">
+                <button id="objToFrontBtn">Bring to Front</button>
+                <button id="objToBackBtn">Send to Back</button>
+              </div>
+              <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:4px">
+                <button id="objDuplicateBtn">Duplicate Object</button>
+                <button id="objDeleteBtn" style="color:var(--accent-rose)">Delete Object</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel-tab-content" id="tab-canvas">
+          <div class="panel-section">
+            <div class="section-head">
+              <span class="section-title">Grid &amp; Drafting Canvas</span>
+              <button class="pin-btn" data-pin="grid-toggle" title="Pin Grid Toggle"><svg class="icon icon-sm"><use href="#icon-pin"/></svg></button>
+            </div>
+            <div class="field-row">
+              <label>Grid Mode</label>
+              <select id="canvasGridMode">
+                <option value="ortho">Orthographic CAD Square</option>
+                <option value="isometric">Isometric 30° Projection</option>
+                <option value="dots">Technical Dot Matrix</option>
+                <option value="millimeter">Engineering Millimeter</option>
+                <option value="none">No Grid</option>
+              </select>
+            </div>
+            <div class="field-row">
+              <label>Spacing</label>
+              <input type="number" id="canvasGridSize" value="25" min="4" max="500">
+            </div>
+            <div class="field-row">
+              <label>Subdivisions</label>
+              <select id="canvasSubdiv">
+                <option value="1">1 (Major Only)</option>
+                <option value="2">2 per cell</option>
+                <option value="4" selected>4 per cell</option>
+                <option value="8">8 per cell</option>
+                <option value="10">10 per cell (Metric)</option>
+              </select>
+            </div>
+            <div class="field-row">
+              <label>Canvas Background</label>
+              <input type="color" id="canvasBgColor" value="#0a4788">
+            </div>
+            <div class="field-row">
+              <label>Grid Line Color</label>
+              <input type="color" id="canvasGridColor" value="#d2ebff">
+            </div>
+            <div class="field-row">
+              <label>Grid Opacity</label>
+              <input type="range" id="canvasGridOpacity" min="5" max="100" value="25">
+            </div>
+          </div>
+
+          <div class="panel-section">
+            <span class="section-title">Precision Controls</span>
+            <div class="switch-row active" id="swGridToggle">
+              <span>Display Grid</span>
+              <div class="switch-pill"></div>
+            </div>
+            <div class="switch-row" id="swSnapToggle">
+              <span>Snap to Grid</span>
+              <div class="switch-pill"></div>
+            </div>
+            <div class="switch-row" id="swCrosshairToggle">
+              <span>CAD Precision Crosshair</span>
+              <div class="switch-pill"></div>
+            </div>
+            <div style="display:flex;gap:6px;margin-top:6px">
+              <button id="viewCenterBtn" style="flex:1">Center View</button>
+              <button id="viewResetZoomBtn" style="flex:1">100% Zoom</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel-tab-content" id="tab-optics">
+          <div class="panel-section">
+            <div class="section-head">
+              <span class="section-title">Liquid Glass Engine</span>
+              <button class="pin-btn" data-pin="optics-quick" title="Pin Glass Optics Switch"><svg class="icon icon-sm"><use href="#icon-pin"/></svg></button>
+            </div>
+            <div class="switch-row active" id="swGlassActive">
+              <span>Enable Glass Panels</span>
+              <div class="switch-pill"></div>
+            </div>
+            <div class="switch-row active" id="swLiquidRefraction">
+              <span>WebGL Liquid Refraction</span>
+              <div class="switch-pill"></div>
+            </div>
+            <div class="switch-row active" id="swChromaticShift">
+              <span>Chromatic Aberration Dispersion</span>
+              <div class="switch-pill"></div>
+            </div>
+            <div class="switch-row active" id="swGlassShine">
+              <span>Specular Rim Highlights</span>
+              <div class="switch-pill"></div>
+            </div>
+            <div class="field-row">
+              <label>Refraction Power</label>
+              <input type="range" id="opticsRefr" min="0" max="100" value="65">
+            </div>
+            <div class="field-row">
+              <label>Chromatic Split</label>
+              <input type="range" id="opticsChroma" min="0" max="100" value="45">
+            </div>
+            <div class="field-row">
+              <label>Blur Diffusion</label>
+              <input type="range" id="opticsBlur" min="0" max="40" value="22">
+            </div>
+          </div>
+
+          <div class="panel-section">
+            <span class="section-title">Tilt-Shift Depth of Field</span>
+            <div class="switch-row" id="swTiltShiftActive">
+              <span>Scheimpflug Tilt-Shift</span>
+              <div class="switch-pill"></div>
+            </div>
+            <div class="field-row">
+              <label>Focus Position</label>
+              <input type="range" id="opticsTiltPos" min="0" max="100" value="50">
+            </div>
+            <div class="field-row">
+              <label>Focus Band Width</label>
+              <input type="range" id="opticsTiltWidth" min="5" max="80" value="30">
+            </div>
+            <div class="field-row">
+              <label>Tilt Angle (θ)</label>
+              <input type="range" id="opticsTiltAngle" min="-90" max="90" value="0">
+            </div>
+          </div>
+        </div>
+
+        <div class="panel-tab-content" id="tab-pro">
+          <div class="panel-section">
+            <div class="section-head">
+              <span class="section-title">Professional CAD Suite</span>
+              <button class="pin-btn" data-pin="pro-quick" title="Pin Pro Mode Toggle"><svg class="icon icon-sm"><use href="#icon-pin"/></svg></button>
+            </div>
+            <div class="switch-row" id="swProMode">
+              <span>Enable Pro Workspace</span>
+              <div class="switch-pill"></div>
+            </div>
+            <div class="switch-row active" id="swOrthoSnap">
+              <span>Ortho Angle Ray Guides (0°, 45°, 90°)</span>
+              <div class="switch-pill"></div>
+            </div>
+            <div class="switch-row active" id="swCadSnapMagnetic">
+              <span>Magnetic Point Snapping (Endpoints/Centers)</span>
+              <div class="switch-pill"></div>
+            </div>
+            <div class="switch-row" id="swTitleBlock">
+              <span>Engineering Title Block Overlay</span>
+              <div class="switch-pill"></div>
+            </div>
+          </div>
+
+          <div class="panel-section">
+            <span class="section-title">Drawing Metadata</span>
+            <div class="field-row">
+              <label>Title</label>
+              <input type="text" id="metaDrawingTitle" value="HYDRAULIC PUMP ASSEMBLY">
+            </div>
+            <div class="field-row">
+              <label>Drafter</label>
+              <input type="text" id="metaDrafter" value="ENGINEERING DIV.">
+            </div>
+            <div class="field-row">
+              <label>Drawing No.</label>
+              <input type="text" id="metaDrawingNo" value="CAD-2026-X01">
+            </div>
+            <div class="field-row">
+              <label>Scale</label>
+              <input type="text" id="metaScale" value="1:1 (METRIC)">
+            </div>
+            <div class="field-row">
+              <label>Revision</label>
+              <input type="text" id="metaRev" value="REV B.4">
+            </div>
+          </div>
+        </div>
+
+        <div class="panel-tab-content" id="tab-plugins">
+          <div class="panel-section">
+            <span class="section-title">Plugin Architecture (.plg)</span>
+            <div id="pluginList" style="display:flex;flex-direction:column;gap:6px"></div>
+            <div style="display:flex;gap:6px;margin-top:6px">
+              <button id="importPluginBtn" style="flex:1">Import .plg</button>
+              <button id="openPluginMakerBtn">New Plugin</button>
+              <input type="file" id="pluginFileInput" accept=".plg,.json,.js" hidden>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </aside>
+  </div>
+
+  <footer class="status-bar glass">
+    <div class="status-left">
+      <span id="statusCoordBadge">X: 0  Y: 0</span>
+      <span id="statusZoomBadge">100%</span>
+      <span id="statusToolBadge" class="status-tag">Tool: Select</span>
+    </div>
+    <div class="status-right">
+      <span id="statusProBadge" class="status-tag pro" style="display:none">PRO CAD ACTIVE</span>
+      <span>Blueprint Studio Engine</span>
+    </div>
+  </footer>
+
+  <button id="zenExitBtn">
+    <svg class="icon icon-sm"><use href="#icon-zen"/></svg>
+    <span>Exit Clean Mode (Z)</span>
+  </button>
+</div>
+
+<!-- AI Vector Linework Modal -->
+<div class="modal-overlay" id="aiModal">
+  <div class="modal-window glass">
+    <div class="modal-head">
+      <div class="modal-title">
+        <svg class="icon" style="stroke:var(--accent-cyan)"><use href="#icon-spark"/></svg>
+        <span>AI Vector Linework Generator</span>
+      </div>
+      <button class="panel-close-btn" id="closeAiModalBtn"><svg class="icon icon-sm"><use href="#icon-cross"/></svg></button>
+    </div>
+    <p style="font-size:11px;color:var(--text-muted);margin:0">
+      Supports Gemini, OpenAI (GPT-4o), Anthropic Claude, or any local/custom AI endpoint (Groq, DeepSeek, Ollama). Returns editable, sanitized vector paths directly into your active layer.
+    </p>
+    <div class="field-row">
+      <label>AI Provider</label>
+      <select id="aiProviderSelect">
+        <option value="gemini">Google Gemini (Gemini 2.5 Flash / 1.5 Pro)</option>
+        <option value="openai">OpenAI (GPT-4o / GPT-4o-mini)</option>
+        <option value="claude">Anthropic Claude (Claude 3.5 Sonnet)</option>
+        <option value="custom">Custom / Local OpenAI-Compatible (Ollama, Groq, DeepSeek)</option>
+      </select>
+    </div>
+    <div class="field-row" id="aiEndpointRow" style="display:none">
+      <label>Endpoint URL</label>
+      <input type="text" id="aiCustomEndpoint" placeholder="https://api.groq.com/openai/v1/chat/completions">
+    </div>
+    <div class="field-row">
+      <label>Model Name</label>
+      <input type="text" id="aiModelInput" value="gemini-2.5-flash">
+    </div>
+    <div class="field-row">
+      <label>API Key</label>
+      <input type="password" id="aiApiKeyInput" placeholder="Enter API Key (session only)">
+    </div>
+    <div class="field-row" style="flex-direction:column;align-items:flex-start">
+      <label>Sketch Description</label>
+      <textarea id="aiPromptInput" rows="3" placeholder="E.g., An engineering elevation cross-section of a high-pressure dual-action piston cylinder with seals, intake port, and labeled tolerances." style="width:100%;margin-top:4px"></textarea>
+    </div>
+    <div class="field-row">
+      <label>Style Preset</label>
+      <select id="aiStylePreset">
+        <option>Technical Blueprint Line Drawing</option>
+        <option>Architectural Floor Plan &amp; Walls</option>
+        <option>Isometric Mechanical Exploded View</option>
+        <option>Electrical Schematic &amp; Circuit</option>
+        <option>Piping &amp; Instrumentation Diagram (P&amp;ID)</option>
+      </select>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:8px">
+      <button id="cancelAiBtn">Cancel</button>
+      <button class="btn-accent" id="generateAiLineworkBtn">Generate Vector Object</button>
+    </div>
+  </div>
+</div>
+
+<!-- Export Studio Modal -->
+<div class="modal-overlay" id="exportModal">
+  <div class="modal-window glass">
+    <div class="modal-head">
+      <div class="modal-title">
+        <svg class="icon"><use href="#icon-export"/></svg>
+        <span>Export Studio &amp; High-Res CAD</span>
+      </div>
+      <button class="panel-close-btn" id="closeExportModalBtn"><svg class="icon icon-sm"><use href="#icon-cross"/></svg></button>
+    </div>
+    <div class="field-row">
+      <label>Format</label>
+      <select id="exportFormat">
+        <option value="github_html">index.html (GitHub Pages Website Ready)</option>
+        <option value="png_project">PNG (High-Res + Embedded .json Project)</option>
+        <option value="png_clean">PNG (Clean Raster Image)</option>
+        <option value="svg">SVG (Scalable Vector Graphic)</option>
+        <option value="jpeg">JPEG (High Contrast Drafting)</option>
+        <option value="json">Blueprint Studio Native Project (.json)</option>
+      </select>
+    </div>
+    <div class="field-row">
+      <label>Resolution Scale</label>
+      <select id="exportResolution">
+        <option value="1">1x Viewport (Native Screen)</option>
+        <option value="1080p">1080p (Full HD 1920 × 1080)</option>
+        <option value="2k">2K (QHD 2560 × 1440)</option>
+        <option value="4k" selected>4K (UHD 3840 × 2160)</option>
+        <option value="8k">8K (Ultra CAD 7680 × 4320)</option>
+      </select>
+    </div>
+    <div class="switch-row active" id="swExportGrid">
+      <span>Include Drafting Grid</span>
+      <div class="switch-pill"></div>
+    </div>
+    <div class="switch-row active" id="swExportTitleBlock">
+      <span>Include Engineering Title Block</span>
+      <div class="switch-pill"></div>
+    </div>
+    <div class="switch-row" id="swExportTransparent">
+      <span>Transparent Background (PNG only)</span>
+      <div class="switch-pill"></div>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px">
+      <button id="cancelExportBtn">Cancel</button>
+      <button class="btn-accent" id="confirmExportBtn">Export Blueprint</button>
+    </div>
+  </div>
+</div>
+
+<!-- Brush Studio Modal -->
+<div class="modal-overlay" id="brushStudioModal">
+  <div class="modal-window glass">
+    <div class="modal-head">
+      <div class="modal-title">
+        <svg class="icon"><use href="#icon-pen"/></svg>
+        <span>Brush Studio &amp; Creator (.brs)</span>
+      </div>
+      <button class="panel-close-btn" id="closeBrushStudioBtn"><svg class="icon icon-sm"><use href="#icon-cross"/></svg></button>
+    </div>
+    <div class="field-row">
+      <label>Brush Name</label>
+      <input type="text" id="bsName" value="Custom Hydraulic Hose">
+    </div>
+    <div class="field-row">
+      <label>Engine Type</label>
+      <select id="bsType">
+        <option value="3d-pipe">3D Cylindrical Pipe / Extrusion</option>
+        <option value="3d-girder">3D Structural I-Beam Girder</option>
+        <option value="double-wall">Architectural Double Wall</option>
+        <option value="particle">Stochastic Scatter / Spray</option>
+        <option value="pattern">Pattern Stitch (Fasteners / Rivets)</option>
+      </select>
+    </div>
+    <div class="field-row">
+      <label>Profile Width</label>
+      <input type="range" id="bsWidth" min="2" max="64" value="12">
+    </div>
+    <div class="field-row">
+      <label>Specular Ridge</label>
+      <input type="range" id="bsSpecular" min="0" max="100" value="80">
+    </div>
+    <div style="border:1px solid rgba(255,255,255,0.2);border-radius:8px;padding:8px;background:#031530">
+      <span style="font-size:10px;color:var(--text-muted)">Live Scratchpad (Draw below to test):</span>
+      <canvas id="scratchpadCanvas" width="480" height="120" style="width:100%;height:120px;display:block;cursor:crosshair;margin-top:4px;touch-action:none"></canvas>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:space-between;margin-top:8px">
+      <button id="clearScratchpadBtn">Clear Pad</button>
+      <div style="display:flex;gap:6px">
+        <button id="exportBrsBtn">Save &amp; Export (.brs)</button>
+        <button class="btn-accent" id="installBrsBtn">Install Brush</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Text Input Modal -->
+<div class="modal-overlay" id="textModal">
+  <div class="modal-window glass">
+    <div class="modal-head">
+      <div class="modal-title">
+        <svg class="icon"><use href="#icon-text"/></svg>
+        <span>Technical Lettering</span>
+      </div>
+      <button class="panel-close-btn" id="closeTextModalBtn"><svg class="icon icon-sm"><use href="#icon-cross"/></svg></button>
+    </div>
+    <div class="field-row" style="flex-direction:column;align-items:flex-start">
+      <label>Lettering Text</label>
+      <input type="text" id="technicalTextInput" placeholder="E.g., SECTION A-A // DIA 45mm ±0.05" style="width:100%;margin-top:4px">
+    </div>
+    <div class="field-row">
+      <label>Font</label>
+      <select id="technicalTextFont">
+        <option value="JetBrains Mono">JetBrains Mono (Technical CAD)</option>
+        <option value="Plus Jakarta Sans">Plus Jakarta Sans (Modern Geometric)</option>
+        <option value="Arial">Arial (Standard)</option>
+        <option value="Courier New">Courier New (Monospaced)</option>
+      </select>
+    </div>
+    <div class="field-row">
+      <label>Font Size: <strong id="fontSizeDisplay">24</strong>px</label>
+      <input type="range" id="technicalTextSize" min="8" max="120" value="24">
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:8px">
+      <button id="cancelTextModalBtn">Cancel</button>
+      <button class="btn-accent" id="confirmTextModalBtn">Place Text</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast">Ready</div>
+
+<script>
+(()=>{
+"use strict";
+
+const $ = id => document.getElementById(id);
+const stage = $('stage');
+const mainCanvas = $('mainCanvas');
+const mainCtx = mainCanvas.getContext('2d');
+const overlayCanvas = $('overlayCanvas');
+const overlayCtx = overlayCanvas.getContext('2d');
+const webglCanvas = $('webglCanvas');
+
+let currentTool = 'select';
+let activeBrush = 'tech-pen';
+let zoom = 1.0;
+let pan = { x: 0, y: 0 };
+let isSpacePressed = false;
+let isPanning = false;
+let panStart = { x: 0, y: 0 };
+let currentPointer = { x: 0, y: 0 };
+let snapToGrid = false;
+let showGrid = true;
+let showCrosshair = false;
+let isProMode = false;
+let isOrthoSnap = true;
+let isCadSnapMagnetic = true;
+let isZenMode = false;
+
+let nextObjectId = 100;
+let nextLayerId = 2;
+let activeLayerId = 1;
+let selectedObjectId = null;
+let transformDrag = null;
+let activeDrawing = null;
+let pendingTextPos = null;
+
+let historyStack = [];
+let redoStack = [];
+
+let layers = [
+  {
+    id: 1,
+    name: 'Main Geometry',
+    visible: true,
+    locked: false,
+    opacity: 1.0,
+    blendMode: 'source-over',
+    objects: []
+  }
+];
+
+const state = {
+  strokeColor: '#ffffff',
+  fillColor: '#ffffff',
+  fillMode: 'none',
+  strokeWidth: 2,
+  opacity: 1.0,
+  smoothing: 3,
+  canvasBg: '#0a4788',
+  gridMode: 'ortho',
+  gridSize: 25,
+  gridSubdiv: 4,
+  gridColor: '#d2ebff',
+  gridOpacity: 0.25,
+  showTitleBlock: false,
+  metadata: {
+    title: 'HYDRAULIC PUMP ASSEMBLY',
+    drafter: 'ENGINEERING DIV.',
+    drawingNo: 'CAD-2026-X01',
+    scale: '1:1 (METRIC)',
+    rev: 'REV B.4'
+  },
+  optics: {
+    glass: true,
+    liquid: true,
+    chroma: true,
+    shine: true,
+    refraction: 0.65,
+    chromaDispersion: 0.45,
+    blur: 22,
+    tiltShift: false,
+    tiltPos: 0.5,
+    tiltWidth: 0.3,
+    tiltAngle: 0
+  }
+};
+
+const BRUSHES = [
+  { id: 'tech-pen', name: 'Technical Pen', cat: 'CAD', type: 'pen' },
+  { id: '3d-pipe', name: '3D Pipe / Conduit', cat: '3D Extrude', type: '3d-pipe' },
+  { id: '3d-girder', name: '3D I-Beam Girder', cat: '3D Extrude', type: '3d-girder' },
+  { id: 'double-wall', name: 'Double Wall', cat: 'Architectural', type: 'double-wall' },
+  { id: 'pencil-2b', name: 'Drafting Pencil', cat: 'Textured', type: 'pencil' },
+  { id: 'chisel', name: 'Chisel Marker', cat: 'Calligraphy', type: 'chisel' },
+  { id: 'laser-neon', name: 'Laser Neon Bloom', cat: 'Luminous', type: 'laser' },
+  { id: 'rivet-stitch', name: 'Bolt / Rivet Stitch', cat: 'Mechanical', type: 'rivets' },
+  { id: 'cross-hatch', name: '45° Cross Hatch', cat: 'Pattern', type: 'hatch' },
+  { id: 'cable-bundle', name: 'Braided Cable', cat: '3D Wire', type: 'cable' },
+  { id: 'chalk', name: 'Drafting Chalk', cat: 'Textured', type: 'chalk' },
+  { id: 'spray', name: 'Airbrush Particle', cat: 'Particle', type: 'spray' },
+  { id: 'dashed', name: 'Dashed Electrical', cat: 'Standard', type: 'dashed' },
+  { id: 'centerline', name: 'Centerline Axis', cat: 'CAD ISO', type: 'centerline' },
+  { id: 'dotted', name: 'Perforated Dot', cat: 'Standard', type: 'dotted' },
+  { id: 'fine-liner', name: 'Rapidograph Liner', cat: 'CAD', type: 'liner' },
+  { id: 'highlighter', name: 'Gel Highlighter', cat: 'Annotation', type: 'highlighter' },
+  { id: 'wave', name: 'Hydraulic Wave', cat: 'Fluidic', type: 'wave' },
+  { id: 'eraser-brush', name: 'Precision Eraser', cat: 'Utility', type: 'eraser' }
+];
+
+let pinnedShortcuts = ['grid-toggle', 'swSnapToggle', 'pro-quick', 'optics-quick'];
+
+function toast(msg) {
+  const t = $('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toast._timer);
+  toast._timer = setTimeout(() => t.classList.remove('show'), 2600);
+}
+
+function getActiveLayer() {
+  return layers.find(l => l.id === activeLayerId) || layers[0];
+}
+
+function findObject(id) {
+  for (const l of layers) {
+    const o = l.objects.find(x => x.id === id);
+    if (o) return { obj: o, layer: l };
+  }
+  return null;
+}
+
+function recordHistory() {
+  historyStack.push(JSON.stringify({ layers, activeLayerId, nextObjectId }));
+  if (historyStack.length > 60) historyStack.shift();
+  redoStack = [];
+}
+
+function undo() {
+  if (!historyStack.length) return toast('Nothing to undo');
+  redoStack.push(JSON.stringify({ layers, activeLayerId, nextObjectId }));
+  const stateData = JSON.parse(historyStack.pop());
+  layers = stateData.layers;
+  activeLayerId = stateData.activeLayerId;
+  nextObjectId = stateData.nextObjectId;
+  selectedObjectId = null;
+  renderCanvas();
+  renderLayers();
+  toast('Undo');
+}
+
+function redo() {
+  if (!redoStack.length) return toast('Nothing to redo');
+  historyStack.push(JSON.stringify({ layers, activeLayerId, nextObjectId }));
+  const stateData = JSON.parse(redoStack.pop());
+  layers = stateData.layers;
+  activeLayerId = stateData.activeLayerId;
+  nextObjectId = stateData.nextObjectId;
+  selectedObjectId = null;
+  renderCanvas();
+  renderLayers();
+  toast('Redo');
+}
+
+function resizeCanvases() {
+  const dpr = window.devicePixelRatio || 1;
+  const rect = stage.getBoundingClientRect();
+  const w = Math.max(1, Math.round(rect.width * dpr));
+  const h = Math.max(1, Math.round(rect.height * dpr));
+
+  [mainCanvas, overlayCanvas, webglCanvas].forEach(c => {
+    c.width = w;
+    c.height = h;
+  });
+
+  mainCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  overlayCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  renderCanvas();
+  glResize(w, h);
+}
+window.addEventListener('resize', resizeCanvases);
+
+function toWorld(screenPt) {
+  return {
+    x: (screenPt.x - pan.x) / zoom,
+    y: (screenPt.y - pan.y) / zoom
+  };
+}
+
+function toScreen(worldPt) {
+  return {
+    x: worldPt.x * zoom + pan.x,
+    y: worldPt.y * zoom + pan.y
+  };
+}
+
+function getPointerPos(e) {
+  const r = stage.getBoundingClientRect();
+  return {
+    x: e.clientX - r.left,
+    y: e.clientY - r.top
+  };
+}
+
+function getSnappedPoint(pt) {
+  let result = { ...pt };
+
+  if (isCadSnapMagnetic) {
+    let closestDist = 12 / zoom;
+    let magneticPt = null;
+    for (const l of layers) {
+      if (!l.visible) continue;
+      for (const o of l.objects) {
+        const snapTargets = getObjectSnapPoints(o);
+        for (const target of snapTargets) {
+          const d = Math.hypot(target.x - pt.x, target.y - pt.y);
+          if (d < closestDist) {
+            closestDist = d;
+            magneticPt = target;
+          }
+        }
+      }
+    }
+    if (magneticPt) return magneticPt;
+  }
+
+  if (snapToGrid) {
+    const step = state.gridSize / Math.max(1, state.gridSubdiv);
+    result.x = Math.round(result.x / step) * step;
+    result.y = Math.round(result.y / step) * step;
+  }
+
+  return result;
+}
+
+function getObjectSnapPoints(o) {
+  const pts = [];
+  if (['line', 'arrow', 'dimension'].includes(o.type)) {
+    pts.push({ x: o.x1, y: o.y1 }, { x: o.x2, y: o.y2 }, { x: (o.x1 + o.x2) / 2, y: (o.y1 + o.y2) / 2 });
+  } else if (['rect', 'block', 'image', 'svg'].includes(o.type)) {
+    pts.push(
+      { x: o.x, y: o.y },
+      { x: o.x + o.w, y: o.y },
+      { x: o.x, y: o.y + o.h },
+      { x: o.x + o.w, y: o.y + o.h },
+      { x: o.x + o.w / 2, y: o.y + o.h / 2 }
+    );
+  } else if (o.type === 'ellipse' || o.type === 'pipe') {
+    pts.push({ x: o.x + o.w / 2, y: o.y + o.h / 2 }, { x: o.x, y: o.y + o.h / 2 }, { x: o.x + o.w, y: o.y + o.h / 2 });
+  } else if (o.type === 'pen' && o.points && o.points.length) {
+    pts.push(o.points[0], o.points[o.points.length - 1]);
+  }
+  return pts;
+}
+
+function applyOrthoSnap(startPt, currentPt) {
+  if (!isOrthoSnap) return currentPt;
+  const dx = currentPt.x - startPt.x;
+  const dy = currentPt.y - startPt.y;
+  const dist = Math.hypot(dx, dy);
+  let angle = Math.atan2(dy, dx);
+
+  const snapAngles = [0, Math.PI / 4, Math.PI / 2, (3 * Math.PI) / 4, Math.PI, -(3 * Math.PI) / 4, -Math.PI / 2, -Math.PI / 4];
+  let closestAngle = angle;
+  let minDiff = Infinity;
+
+  snapAngles.forEach(sa => {
+    let diff = Math.abs(angle - sa);
+    if (diff > Math.PI) diff = 2 * Math.PI - diff;
+    if (diff < minDiff) {
+      minDiff = diff;
+      closestAngle = sa;
+    }
+  });
+
+  if (minDiff < 0.18) {
+    return {
+      x: startPt.x + dist * Math.cos(closestAngle),
+      y: startPt.y + dist * Math.sin(closestAngle)
+    };
+  }
+  return currentPt;
+}
+
+function getObjectBounds(o) {
+  if (['line', 'arrow', 'dimension'].includes(o.type)) {
+    const minX = Math.min(o.x1, o.x2);
+    const minY = Math.min(o.y1, o.y2);
+    return { x: minX, y: minY, w: Math.max(2, Math.abs(o.x2 - o.x1)), h: Math.max(2, Math.abs(o.y2 - o.y1)) };
+  }
+  if (o.type === 'pen') {
+    if (!o.points || !o.points.length) return { x: 0, y: 0, w: 0, h: 0 };
+    const xs = o.points.map(p => p.x);
+    const ys = o.points.map(p => p.y);
+    const minX = Math.min(...xs), maxX = Math.max(...xs);
+    const minY = Math.min(...ys), maxY = Math.max(...ys);
+    return { x: minX, y: minY, w: Math.max(4, maxX - minX), h: Math.max(4, maxY - minY) };
+  }
+  if (o.type === 'text') {
+    return { x: o.x, y: o.y - (o.size || 24), w: Math.max(20, (o.text || '').length * (o.size || 24) * 0.6), h: o.size || 24 };
+  }
+  return { x: o.x, y: o.y, w: o.w || 2, h: o.h || 2 };
+}
+
+function hitTestObject(pt) {
+  const currentL = getActiveLayer();
+  if (currentL.locked || !currentL.visible) return null;
+
+  for (let i = currentL.objects.length - 1; i >= 0; i--) {
+    const o = currentL.objects[i];
+    const b = getObjectBounds(o);
+    const pad = 12 / zoom;
+    if (pt.x >= b.x - pad && pt.x <= b.x + b.w + pad && pt.y >= b.y - pad && pt.y <= b.y + b.h + pad) {
+      return o;
+    }
+  }
+  return null;
+}
+
+function drawGrid(ctx, w, h) {
+  if (!showGrid || state.gridMode === 'none') return;
+  ctx.save();
+
+  const g = state.gridSize;
+  const left = -pan.x / zoom;
+  const top = -pan.y / zoom;
+  const right = (w - pan.x) / zoom;
+  const bottom = (h - pan.y) / zoom;
+
+  ctx.strokeStyle = state.gridColor;
+  ctx.lineWidth = 1 / zoom;
+
+  if (state.gridMode === 'ortho' || state.gridMode === 'millimeter') {
+    const subdiv = state.gridSubdiv;
+    const subG = g / subdiv;
+
+    ctx.globalAlpha = state.gridOpacity * 0.35;
+    ctx.beginPath();
+    const startX = Math.floor(left / subG) * subG;
+    const endX = Math.ceil(right / subG) * subG;
+    for (let x = startX; x <= endX; x += subG) {
+      ctx.moveTo(x, top); ctx.lineTo(x, bottom);
+    }
+    const startY = Math.floor(top / subG) * subG;
+    const endY = Math.ceil(bottom / subG) * subG;
+    for (let y = startY; y <= endY; y += subG) {
+      ctx.moveTo(left, y); ctx.lineTo(right, y);
+    }
+    ctx.stroke();
+
+    ctx.globalAlpha = state.gridOpacity;
+    ctx.lineWidth = 1.5 / zoom;
+    ctx.beginPath();
+    const majorStartX = Math.floor(left / g) * g;
+    const majorEndX = Math.ceil(right / g) * g;
+    for (let x = majorStartX; x <= majorEndX; x += g) {
+      ctx.moveTo(x, top); ctx.lineTo(x, bottom);
+    }
+    const majorStartY = Math.floor(top / g) * g;
+    const majorEndY = Math.ceil(bottom / g) * g;
+    for (let y = majorStartY; y <= majorEndY; y += g) {
+      ctx.moveTo(left, y); ctx.lineTo(right, y);
+    }
+    ctx.stroke();
+  } else if (state.gridMode === 'isometric') {
+    ctx.globalAlpha = state.gridOpacity * 0.7;
+    const isoH = g * Math.sqrt(3);
+    ctx.beginPath();
+    for (let x = Math.floor(left / g) * g; x <= right; x += g) {
+      ctx.moveTo(x, top); ctx.lineTo(x, bottom);
+    }
+    const diagSpan = (right - left) + (bottom - top);
+    for (let d = -diagSpan; d <= diagSpan; d += g * 1.5) {
+      ctx.moveTo(left, top + d);
+      ctx.lineTo(right, top + d + (right - left) * 0.577);
+      ctx.moveTo(left, bottom - d);
+      ctx.lineTo(right, bottom - d - (right - left) * 0.577);
+    }
+    ctx.stroke();
+  } else if (state.gridMode === 'dots') {
+    ctx.globalAlpha = state.gridOpacity * 1.5;
+    ctx.fillStyle = state.gridColor;
+    const dotR = 1.2 / zoom;
+    for (let x = Math.floor(left / g) * g; x <= right; x += g) {
+      for (let y = Math.floor(top / g) * g; y <= bottom; y += g) {
+        ctx.fillRect(x - dotR, y - dotR, dotR * 2, dotR * 2);
+      }
+    }
+  }
+
+  ctx.restore();
+}
+
+const imgRenderCache = new Map();
+
+function drawObject(ctx, o, layerAlpha = 1) {
+  ctx.save();
+  ctx.globalAlpha = layerAlpha * (o.opacity ?? 1);
+  ctx.strokeStyle = o.stroke || '#fff';
+  ctx.fillStyle = o.fill || 'transparent';
+  ctx.lineWidth = o.width || 2;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+
+  if (o.dash === 'center') {
+    ctx.setLineDash([16, 5, 3, 5]);
+  } else if (o.dash === 'dash') {
+    ctx.setLineDash([8, 6]);
+  } else if (o.dash === 'dot') {
+    ctx.setLineDash([2, 5]);
+  } else {
+    ctx.setLineDash([]);
+  }
+
+  if (o.type === 'image') {
+    let img = imgRenderCache.get(o.src);
+    if (!img) {
+      img = new Image();
+      img.onload = () => renderCanvas();
+      img.src = o.src;
+      imgRenderCache.set(o.src, img);
+    }
+    if (img.complete && img.naturalWidth) {
+      ctx.drawImage(img, o.x, o.y, o.w, o.h);
+      ctx.strokeStyle = 'rgba(82,220,255,0.4)';
+      ctx.lineWidth = 1 / zoom;
+      ctx.strokeRect(o.x, o.y, o.w, o.h);
+    }
+    ctx.restore();
+    return;
+  }
+
+  if (o.type === 'svg') {
+    let img = imgRenderCache.get(o.svg);
+    if (!img) {
+      img = new Image();
+      img.onload = () => renderCanvas();
+      img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(o.svg);
+      imgRenderCache.set(o.svg, img);
+    }
+    if (img.complete && img.naturalWidth) {
+      ctx.drawImage(img, o.x, o.y, o.w, o.h);
+    }
+    ctx.restore();
+    return;
+  }
+
+  if (o.type === 'text') {
+    ctx.font = `${o.size || 24}px "${o.font || 'JetBrains Mono'}", monospace`;
+    ctx.fillStyle = o.stroke || '#fff';
+    ctx.fillText(o.text || '', o.x, o.y);
+    ctx.restore();
+    return;
+  }
+
+  if (o.type === 'pen') {
+    renderAdvancedBrushPath(ctx, o);
+    ctx.restore();
+    return;
+  }
+
+  ctx.beginPath();
+  if (o.type === 'line' || o.type === 'arrow' || o.type === 'dimension') {
+    ctx.moveTo(o.x1, o.y1);
+    ctx.lineTo(o.x2, o.y2);
+  } else if (o.type === 'rect') {
+    ctx.rect(o.x, o.y, o.w, o.h);
+  } else if (o.type === 'ellipse') {
+    ctx.ellipse(o.x + o.w / 2, o.y + o.h / 2, Math.abs(o.w / 2), Math.abs(o.h / 2), 0, 0, Math.PI * 2);
+  } else if (o.type === 'block') {
+    render3DBox(ctx, o);
+    ctx.restore();
+    return;
+  } else if (o.type === 'pipe') {
+    render3DPipe(ctx, o);
+    ctx.restore();
+    return;
+  }
+
+  if (o.fillMode === 'solid') {
+    ctx.fill();
+  } else if (o.fillMode === 'transparent') {
+    ctx.globalAlpha *= 0.2;
+    ctx.fill();
+    ctx.globalAlpha /= 0.2;
+  } else if (o.fillMode === 'hatch') {
+    renderHatchingFill(ctx, o);
+  }
+
+  ctx.stroke();
+
+  if (o.type === 'arrow') {
+    renderArrowHead(ctx, o.x1, o.y1, o.x2, o.y2, o.width || 2);
+  } else if (o.type === 'dimension') {
+    renderDimensionAnnotation(ctx, o);
+  }
+
+  ctx.restore();
+}
+
+function renderArrowHead(ctx, x1, y1, x2, y2, strokeW) {
+  const angle = Math.atan2(y2 - y1, x2 - x1);
+  const headLen = Math.max(12, strokeW * 3.5);
+  ctx.save();
+  ctx.beginPath();
+  ctx.moveTo(x2, y2);
+  ctx.lineTo(x2 - headLen * Math.cos(angle - 0.4), y2 - headLen * Math.sin(angle - 0.4));
+  ctx.lineTo(x2 - headLen * Math.cos(angle + 0.4), y2 - headLen * Math.sin(angle + 0.4));
+  ctx.closePath();
+  ctx.fillStyle = ctx.strokeStyle;
+  ctx.fill();
+  ctx.restore();
+}
+
+function renderDimensionAnnotation(ctx, o) {
+  const angle = Math.atan2(o.y2 - o.y1, o.x2 - o.x1);
+  const headLen = 10;
+  ctx.save();
+
+  ctx.beginPath();
+  ctx.moveTo(o.x2, o.y2);
+  ctx.lineTo(o.x2 - headLen * Math.cos(angle - 0.35), o.y2 - headLen * Math.sin(angle - 0.35));
+  ctx.moveTo(o.x2, o.y2);
+  ctx.lineTo(o.x2 - headLen * Math.cos(angle + 0.35), o.y2 - headLen * Math.sin(angle + 0.35));
+  ctx.moveTo(o.x1, o.y1);
+  ctx.lineTo(o.x1 + headLen * Math.cos(angle - 0.35), o.y1 + headLen * Math.sin(angle - 0.35));
+  ctx.moveTo(o.x1, o.y1);
+  ctx.lineTo(o.x1 + headLen * Math.cos(angle + 0.35), o.y1 + headLen * Math.sin(angle + 0.35));
+  ctx.stroke();
+
+  const dist = Math.hypot(o.x2 - o.x1, o.y2 - o.y1);
+  const midX = (o.x1 + o.x2) / 2;
+  const midY = (o.y1 + o.y2) / 2;
+  const label = dist.toFixed(1) + ' mm';
+
+  ctx.font = '11px "JetBrains Mono", monospace';
+  ctx.fillStyle = o.stroke || '#fff';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'bottom';
+  ctx.fillText(label, midX, midY - 4);
+  ctx.restore();
+}
+
+function render3DBox(ctx, o) {
+  const dx = o.w * 0.35;
+  const dy = -o.h * 0.28;
+
+  ctx.beginPath();
+  ctx.rect(o.x, o.y, o.w, o.h);
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.moveTo(o.x, o.y); ctx.lineTo(o.x + dx, o.y + dy);
+  ctx.lineTo(o.x + o.w + dx, o.y + dy);
+  ctx.lineTo(o.x + o.w, o.y);
+  ctx.moveTo(o.x + o.w, o.y);
+  ctx.lineTo(o.x + o.w + dx, o.y + dy);
+  ctx.lineTo(o.x + o.w + dx, o.y + o.h + dy);
+  ctx.lineTo(o.x + o.w, o.y + o.h);
+  ctx.stroke();
+
+  ctx.save();
+  ctx.fillStyle = 'rgba(255,255,255,0.08)';
+  ctx.beginPath();
+  ctx.moveTo(o.x, o.y); ctx.lineTo(o.x + dx, o.y + dy);
+  ctx.lineTo(o.x + o.w + dx, o.y + dy); ctx.lineTo(o.x + o.w, o.y);
+  ctx.closePath();
+  ctx.fill();
+  ctx.restore();
+}
+
+function render3DPipe(ctx, o) {
+  const ry = Math.max(6, o.h * 0.18);
+  const cx = o.x + o.w / 2;
+
+  ctx.save();
+  const grad = ctx.createLinearGradient(o.x, 0, o.x + o.w, 0);
+  grad.addColorStop(0, 'rgba(0,0,0,0.6)');
+  grad.addColorStop(0.35, 'rgba(255,255,255,0.65)');
+  grad.addColorStop(0.65, 'rgba(100,180,255,0.4)');
+  grad.addColorStop(1, 'rgba(0,0,0,0.7)');
+
+  ctx.fillStyle = grad;
+  ctx.beginPath();
+  ctx.rect(o.x, o.y + ry, o.w, o.h - ry * 2);
+  ctx.fill();
+
+  ctx.beginPath();
+  ctx.moveTo(o.x, o.y + ry); ctx.lineTo(o.x, o.y + o.h - ry);
+  ctx.moveTo(o.x + o.w, o.y + ry); ctx.lineTo(o.x + o.w, o.y + o.h - ry);
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.ellipse(cx, o.y + ry, o.w / 2, ry, 0, 0, Math.PI * 2);
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.ellipse(cx, o.y + o.h - ry, o.w / 2, ry, 0, 0, Math.PI);
+  ctx.stroke();
+  ctx.restore();
+}
+
+function renderHatchingFill(ctx, o) {
+  const b = getObjectBounds(o);
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(b.x, b.y, b.w, b.h);
+  ctx.clip();
+
+  ctx.strokeStyle = o.stroke || '#fff';
+  ctx.globalAlpha *= 0.25;
+  ctx.lineWidth = 1;
+  const step = 8;
+  for (let x = b.x - b.h; x <= b.x + b.w; x += step) {
+    ctx.beginPath();
+    ctx.moveTo(x, b.y + b.h);
+    ctx.lineTo(x + b.h, b.y);
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function renderAdvancedBrushPath(ctx, o) {
+  const pts = o.points;
+  if (!pts || !pts.length) return;
+
+  const brushId = o.brushEngine || 'tech-pen';
+  const bDef = BRUSHES.find(b => b.id === brushId || b.type === brushId);
+  const brushType = bDef ? bDef.type : brushId;
+  const w = o.width || 2;
+  const color = o.stroke || '#ffffff';
+
+  if (brushType === '3d-pipe') {
+    ctx.lineWidth = w * 2.8;
+    ctx.strokeStyle = 'rgba(0, 15, 40, 0.7)';
+    tracePoints(ctx, pts);
+    ctx.stroke();
+
+    ctx.lineWidth = w * 2.2;
+    ctx.strokeStyle = color;
+    tracePoints(ctx, pts);
+    ctx.stroke();
+
+    ctx.lineWidth = Math.max(1, w * 0.6);
+    ctx.strokeStyle = '#ffffff';
+    ctx.globalAlpha *= 0.85;
+    tracePoints(ctx, pts);
+    ctx.stroke();
+  } else if (brushType === '3d-girder') {
+    ctx.lineWidth = w * 3.2;
+    ctx.strokeStyle = 'rgba(2, 20, 50, 0.95)';
+    tracePoints(ctx, pts);
+    ctx.stroke();
+
+    ctx.lineWidth = w * 1.0;
+    ctx.strokeStyle = color;
+    tracePoints(ctx, pts);
+    ctx.stroke();
+
+    traceOffsetLine(ctx, pts, -w * 1.4);
+    traceOffsetLine(ctx, pts, w * 1.4);
+  } else if (brushType === 'double-wall') {
+    ctx.lineWidth = Math.max(1.5, w * 0.5);
+    ctx.strokeStyle = color;
+    traceOffsetLine(ctx, pts, -w * 1.6);
+    traceOffsetLine(ctx, pts, w * 1.6);
+  } else if (brushType === 'laser') {
+    ctx.shadowColor = color;
+    ctx.shadowBlur = w * 4;
+    ctx.lineWidth = w * 2;
+    tracePoints(ctx, pts);
+    ctx.stroke();
+    ctx.stroke();
+
+    ctx.shadowBlur = 0;
+    ctx.lineWidth = Math.max(1, w * 0.6);
+    ctx.strokeStyle = '#ffffff';
+    tracePoints(ctx, pts);
+    ctx.stroke();
+  } else if (brushType === 'rivets') {
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = 'rgba(255,255,255,0.4)';
+    ctx.setLineDash([8, 6]);
+    tracePoints(ctx, pts);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    const rivetRadius = Math.max(3, w * 0.9);
+    for (let i = 0; i < pts.length; i += 5) {
+      const p = pts[i];
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, rivetRadius, 0, Math.PI * 2);
+      ctx.fillStyle = color;
+      ctx.fill();
+      ctx.strokeStyle = '#031530';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(p.x - rivetRadius * 0.3, p.y - rivetRadius * 0.3, rivetRadius * 0.3, 0, Math.PI * 2);
+      ctx.fillStyle = '#ffffff';
+      ctx.fill();
+    }
+  } else if (brushType === 'pencil') {
+    ctx.lineWidth = Math.max(1, w * 0.7);
+    ctx.strokeStyle = color;
+    tracePoints(ctx, pts);
+    ctx.stroke();
+
+    ctx.fillStyle = color;
+    for (let i = 0; i < pts.length; i += 2) {
+      const p = pts[i];
+      const r = Math.sin(i * 997) * w * 0.8;
+      const angle = Math.cos(i * 331) * Math.PI * 2;
+      ctx.globalAlpha = 0.4 + (Math.sin(i * 123) + 1) * 0.25;
+      ctx.fillRect(p.x + Math.cos(angle) * r, p.y + Math.sin(angle) * r, 1.2, 1.2);
+    }
+  } else if (brushType === 'chisel') {
+    ctx.lineCap = 'butt';
+    ctx.lineJoin = 'miter';
+    for (let i = 0; i < pts.length - 1; i++) {
+      const p1 = pts[i];
+      const p2 = pts[i + 1];
+      const angle = Math.PI / 4;
+      const ox = Math.cos(angle) * w;
+      const oy = Math.sin(angle) * w;
+      ctx.beginPath();
+      ctx.moveTo(p1.x - ox, p1.y - oy);
+      ctx.lineTo(p1.x + ox, p1.y + oy);
+      ctx.lineTo(p2.x + ox, p2.y + oy);
+      ctx.lineTo(p2.x - ox, p2.y - oy);
+      ctx.closePath();
+      ctx.fillStyle = color;
+      ctx.fill();
+    }
+  } else if (brushType === 'hatch') {
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = color;
+    tracePoints(ctx, pts);
+    ctx.stroke();
+    for (let i = 0; i < pts.length; i += 4) {
+      const p = pts[i];
+      ctx.beginPath();
+      ctx.moveTo(p.x - w, p.y + w);
+      ctx.lineTo(p.x + w, p.y - w);
+      ctx.stroke();
+    }
+  } else if (brushType === 'cable') {
+    ctx.lineWidth = w * 1.8;
+    ctx.strokeStyle = '#051b3d';
+    tracePoints(ctx, pts);
+    ctx.stroke();
+    traceOffsetLine(ctx, pts, -w * 0.6);
+    traceOffsetLine(ctx, pts, 0);
+    traceOffsetLine(ctx, pts, w * 0.6);
+  } else if (brushType === 'chalk') {
+    ctx.lineCap = 'square';
+    ctx.lineWidth = w * 1.6;
+    ctx.strokeStyle = color;
+    ctx.globalAlpha *= 0.75;
+    tracePoints(ctx, pts);
+    ctx.stroke();
+    ctx.fillStyle = '#ffffff';
+    for (let i = 0; i < pts.length; i += 3) {
+      const p = pts[i];
+      ctx.globalAlpha = 0.35;
+      ctx.fillRect(p.x + (Math.sin(i * 43) * w), p.y + (Math.cos(i * 71) * w), 2, 2);
+    }
+  } else if (brushType === 'spray') {
+    ctx.fillStyle = color;
+    for (let i = 0; i < pts.length; i++) {
+      const p = pts[i];
+      for (let s = 0; s < 6; s++) {
+        const rad = Math.abs(Math.sin(i * 13 + s * 17)) * w * 2.5;
+        const th = (i * 29 + s * 53) % 6.28;
+        ctx.globalAlpha = 0.3 + (s % 3) * 0.2;
+        ctx.fillRect(p.x + Math.cos(th) * rad, p.y + Math.sin(th) * rad, 1.3, 1.3);
+      }
+    }
+  } else if (brushType === 'dashed') {
+    ctx.setLineDash([8, 6]);
+    ctx.lineWidth = w;
+    ctx.strokeStyle = color;
+    tracePoints(ctx, pts);
+    ctx.stroke();
+    ctx.setLineDash([]);
+  } else if (brushType === 'centerline') {
+    ctx.setLineDash([16, 5, 3, 5]);
+    ctx.lineWidth = w;
+    ctx.strokeStyle = color;
+    tracePoints(ctx, pts);
+    ctx.stroke();
+    ctx.setLineDash([]);
+  } else if (brushType === 'dotted') {
+    ctx.setLineDash([2, 6]);
+    ctx.lineWidth = w * 1.2;
+    ctx.strokeStyle = color;
+    tracePoints(ctx, pts);
+    ctx.stroke();
+    ctx.setLineDash([]);
+  } else if (brushType === 'liner') {
+    ctx.lineWidth = Math.max(1, w * 0.4);
+    ctx.strokeStyle = color;
+    tracePoints(ctx, pts, 1);
+    ctx.stroke();
+  } else if (brushType === 'highlighter') {
+    ctx.globalAlpha *= 0.35;
+    ctx.lineWidth = w * 4.5;
+    ctx.lineCap = 'square';
+    ctx.strokeStyle = color;
+    tracePoints(ctx, pts);
+    ctx.stroke();
+  } else if (brushType === 'wave') {
+    ctx.lineWidth = w;
+    ctx.strokeStyle = color;
+    ctx.beginPath();
+    for (let i = 0; i < pts.length; i++) {
+      const p = pts[i];
+      const sineOff = Math.sin(i * 0.5) * (w * 1.5);
+      if (i === 0) ctx.moveTo(p.x, p.y + sineOff);
+      else ctx.lineTo(p.x, p.y + sineOff);
+    }
+    ctx.stroke();
+  } else {
+    ctx.lineWidth = w;
+    ctx.strokeStyle = color;
+    tracePoints(ctx, pts, o.smooth || state.smoothing);
+    ctx.stroke();
+  }
+}
+
+function tracePoints(ctx, pts, smoothFactor = 3) {
+  ctx.beginPath();
+  if (pts.length === 1) {
+    ctx.arc(pts[0].x, pts[0].y, ctx.lineWidth / 2, 0, Math.PI * 2);
+    return;
+  }
+  ctx.moveTo(pts[0].x, pts[0].y);
+  if (smoothFactor > 0 && pts.length > 2) {
+    for (let i = 1; i < pts.length - 1; i++) {
+      const xc = (pts[i].x + pts[i + 1].x) / 2;
+      const yc = (pts[i].y + pts[i + 1].y) / 2;
+      ctx.quadraticCurveTo(pts[i].x, pts[i].y, xc, yc);
+    }
+    ctx.lineTo(pts[pts.length - 1].x, pts[pts.length - 1].y);
+  } else {
+    for (let i = 1; i < pts.length; i++) {
+      ctx.lineTo(pts[i].x, pts[i].y);
+    }
+  }
+}
+
+function traceOffsetLine(ctx, pts, offset) {
+  if (pts.length < 2) return;
+  ctx.beginPath();
+  for (let i = 0; i < pts.length; i++) {
+    const cur = pts[i];
+    const nxt = pts[Math.min(i + 1, pts.length - 1)];
+    const angle = Math.atan2(nxt.y - cur.y, nxt.x - cur.x) + Math.PI / 2;
+    const ox = cur.x + Math.cos(angle) * offset;
+    const oy = cur.y + Math.sin(angle) * offset;
+    if (i === 0) ctx.moveTo(ox, oy);
+    else ctx.lineTo(ox, oy);
+  }
+  ctx.stroke();
+}
+
+function renderCanvas() {
+  const w = stage.clientWidth;
+  const h = stage.clientHeight;
+
+  mainCtx.clearRect(0, 0, w, h);
+  mainCtx.fillStyle = state.canvasBg;
+  mainCtx.fillRect(0, 0, w, h);
+
+  mainCtx.save();
+  mainCtx.translate(pan.x, pan.y);
+  mainCtx.scale(zoom, zoom);
+
+  drawGrid(mainCtx, w, h);
+
+  for (const layer of layers) {
+    if (!layer.visible) continue;
+    mainCtx.save();
+    mainCtx.globalCompositeOperation = layer.blendMode || 'source-over';
+    for (const obj of layer.objects) {
+      drawObject(mainCtx, obj, layer.opacity);
+    }
+    mainCtx.restore();
+  }
+
+  if (activeDrawing) {
+    drawObject(mainCtx, activeDrawing, 1.0);
+  }
+
+  if (state.showTitleBlock) {
+    renderTitleBlock(mainCtx, w, h);
+  }
+
+  mainCtx.restore();
+
+  renderOverlay(w, h);
+  updateWebGlTexture();
+  if (layerThumbnailsDirty) updateLayerThumbnails();
+}
+
+function renderOverlay(w, h) {
+  overlayCtx.clearRect(0, 0, w, h);
+
+  if (showCrosshair) {
+    overlayCtx.save();
+    overlayCtx.strokeStyle = 'rgba(82, 220, 255, 0.45)';
+    overlayCtx.lineWidth = 1;
+    overlayCtx.setLineDash([4, 4]);
+
+    overlayCtx.beginPath();
+    overlayCtx.moveTo(0, currentPointer.y);
+    overlayCtx.lineTo(w, currentPointer.y);
+    overlayCtx.moveTo(currentPointer.x, 0);
+    overlayCtx.lineTo(currentPointer.x, h);
+    overlayCtx.stroke();
+    overlayCtx.restore();
+  }
+
+  if (selectedObjectId) {
+    const found = findObject(selectedObjectId);
+    if (found) {
+      const b = getObjectBounds(found.obj);
+      const sPt = toScreen({ x: b.x, y: b.y });
+      const sW = b.w * zoom;
+      const sH = b.h * zoom;
+
+      overlayCtx.save();
+      overlayCtx.strokeStyle = '#52dcff';
+      overlayCtx.lineWidth = 1.5;
+      overlayCtx.setLineDash([6, 4]);
+      overlayCtx.strokeRect(sPt.x - 4, sPt.y - 4, sW + 8, sH + 8);
+
+      overlayCtx.setLineDash([]);
+      overlayCtx.fillStyle = '#ffffff';
+      const handleSize = 7;
+      const handleCoords = [
+        { x: sPt.x - 4, y: sPt.y - 4 },
+        { x: sPt.x + sW + 4, y: sPt.y - 4 },
+        { x: sPt.x - 4, y: sPt.y + sH + 4 },
+        { x: sPt.x + sW + 4, y: sPt.y + sH + 4 },
+        { x: sPt.x + sW / 2, y: sPt.y - 18 }
+      ];
+      handleCoords.forEach((hc, idx) => {
+        overlayCtx.fillStyle = idx === 4 ? '#fbbf24' : '#ffffff';
+        overlayCtx.fillRect(hc.x - handleSize / 2, hc.y - handleSize / 2, handleSize, handleSize);
+        overlayCtx.strokeRect(hc.x - handleSize / 2, hc.y - handleSize / 2, handleSize, handleSize);
+      });
+      overlayCtx.restore();
+    }
+  }
+
+  if (isProMode && isOrthoSnap && activeDrawing && ['line', 'arrow', 'dimension'].includes(activeDrawing.type)) {
+    const s1 = toScreen({ x: activeDrawing.x1, y: activeDrawing.y1 });
+    overlayCtx.save();
+    overlayCtx.strokeStyle = 'rgba(52, 211, 153, 0.4)';
+    overlayCtx.setLineDash([3, 5]);
+    overlayCtx.beginPath();
+    overlayCtx.moveTo(s1.x - 1000, s1.y); overlayCtx.lineTo(s1.x + 1000, s1.y);
+    overlayCtx.moveTo(s1.x, s1.y - 1000); overlayCtx.lineTo(s1.x, s1.y + 1000);
+    overlayCtx.stroke();
+    overlayCtx.restore();
+  }
+}
+
+function renderTitleBlock(ctx, w, h) {
+  const m = state.metadata;
+  const blockW = 340;
+  const blockH = 110;
+  const sideEl = document.getElementById('sideDrawer');
+  const sideOffset = (sideEl && !sideEl.classList.contains('hidden') && window.innerWidth > 860) ? 395 : 20;
+
+  const screenX = w - sideOffset - blockW;
+  const screenY = h - 45 - blockH;
+
+  const bx = (screenX - pan.x) / zoom;
+  const by = (screenY - pan.y) / zoom;
+
+  ctx.save();
+  ctx.fillStyle = 'rgba(3, 21, 48, 0.9)';
+  ctx.strokeStyle = '#52dcff';
+  ctx.lineWidth = 1.5;
+  ctx.fillRect(bx, by, blockW, blockH);
+  ctx.strokeRect(bx, by, blockW, blockH);
+
+  ctx.strokeStyle = 'rgba(82, 220, 255, 0.4)';
+  ctx.beginPath();
+  ctx.moveTo(bx, by + 32); ctx.lineTo(bx + blockW, by + 32);
+  ctx.moveTo(bx, by + 68); ctx.lineTo(bx + blockW, by + 68);
+  ctx.moveTo(bx + 180, by + 32); ctx.lineTo(bx + 180, by + blockH);
+  ctx.stroke();
+
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 12px "JetBrains Mono", monospace';
+  ctx.fillText(m.title, bx + 10, by + 21);
+
+  ctx.font = '10px "JetBrains Mono", monospace';
+  ctx.fillStyle = '#c3daf5';
+  ctx.fillText('DWG: ' + m.drawingNo, bx + 10, by + 52);
+  ctx.fillText('REV: ' + m.rev, bx + 10, by + 92);
+  ctx.fillText('BY: ' + m.drafter, bx + 190, by + 52);
+  ctx.fillText('SCALE: ' + m.scale, bx + 190, by + 92);
+  ctx.restore();
+}
+
+let gl = null;
+let glProgram = null;
+let glTex = null;
+let glBuffer = null;
+
+function initWebGL() {
+  try {
+    gl = webglCanvas.getContext('webgl', { premultipliedAlpha: false, alpha: true });
+    if (!gl) return console.warn('WebGL not supported');
+
+    const vsSrc = `
+      attribute vec2 a_pos;
+      varying vec2 v_uv;
+      void main() {
+        v_uv = (a_pos + 1.0) * 0.5;
+        gl_Position = vec4(a_pos, 0.0, 1.0);
+      }
+    `;
+
+    const fsSrc = `
+      precision highp float;
+      varying vec2 v_uv;
+      uniform sampler2D u_tex;
+      uniform vec2 u_res;
+      uniform float u_time;
+      uniform float u_refr;
+      uniform float u_chroma;
+      uniform float u_blur;
+      uniform int u_tiltShift;
+      uniform float u_tiltPos;
+      uniform float u_tiltWidth;
+      uniform float u_tiltAngle;
+
+      void main() {
+        vec2 uv = v_uv;
+        vec2 pixel = uv * u_res;
+
+        if (u_refr > 0.01) {
+          vec2 normCoord = uv * 2.0 - 1.0;
+          vec2 ripple = vec2(
+            sin(pixel.y * 0.03 + u_time * 0.8) * cos(pixel.x * 0.02),
+            cos(pixel.y * 0.02 + u_time * 0.8) * sin(pixel.x * 0.03)
+          );
+          uv += (ripple * 0.006 + normCoord * 0.012) * u_refr;
+        }
+
+        float tsBlur = 0.0;
+        if (u_tiltShift == 1) {
+          float rad = radians(u_tiltAngle);
+          vec2 dir = vec2(sin(rad), cos(rad));
+          float dist = abs(dot(uv - vec2(0.5, u_tiltPos), dir));
+          tsBlur = smoothstep(u_tiltWidth * 0.5, u_tiltWidth * 1.5, dist) * (u_blur * 0.003);
+        }
+
+        float disp = (u_chroma * 0.004) + tsBlur;
+        vec4 col;
+        if (disp > 0.0005) {
+          float r = texture2D(u_tex, uv + vec2(disp, 0.0)).r;
+          float g = texture2D(u_tex, uv).g;
+          float b = texture2D(u_tex, uv - vec2(disp * 1.4, 0.0)).b;
+          float a = texture2D(u_tex, uv).a;
+          col = vec4(r, g, b, a);
+        } else {
+          col = texture2D(u_tex, uv);
+        }
+
+        gl_FragColor = col;
+      }
+    `;
+
+    const vs = gl.createShader(gl.VERTEX_SHADER);
+    gl.shaderSource(vs, vsSrc); gl.compileShader(vs);
+
+    const fs = gl.createShader(gl.FRAGMENT_SHADER);
+    gl.shaderSource(fs, fsSrc); gl.compileShader(fs);
+
+    glProgram = gl.createProgram();
+    gl.attachShader(glProgram, vs);
+    gl.attachShader(glProgram, fs);
+    gl.linkProgram(glProgram);
+    gl.useProgram(glProgram);
+
+    glBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, glBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
+      -1, -1, 1, -1, -1, 1,
+      -1, 1, 1, -1, 1, 1
+    ]), gl.STATIC_DRAW);
+
+    const aPos = gl.getAttribLocation(glProgram, 'a_pos');
+    gl.enableVertexAttribArray(aPos);
+    gl.vertexAttribPointer(aPos, 2, gl.FLOAT, false, 0, 0);
+
+    glTex = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, glTex);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  } catch (err) {
+    console.warn('WebGL init error:', err);
+  }
+}
+
+function glResize(w, h) {
+  if (!gl) return;
+  gl.viewport(0, 0, w, h);
+  const uRes = gl.getUniformLocation(glProgram, 'u_res');
+  if (uRes) gl.uniform2f(uRes, w, h);
+}
+
+function updateWebGlTexture() {
+  if (!gl || !glTex || !state.optics.liquid) {
+    webglCanvas.style.display = 'none';
+    return;
+  }
+  webglCanvas.style.display = 'block';
+
+  gl.bindTexture(gl.TEXTURE_2D, glTex);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, mainCanvas);
+
+  gl.useProgram(glProgram);
+  gl.uniform1f(gl.getUniformLocation(glProgram, 'u_time'), performance.now() * 0.001);
+  gl.uniform1f(gl.getUniformLocation(glProgram, 'u_refr'), state.optics.refraction);
+  gl.uniform1f(gl.getUniformLocation(glProgram, 'u_chroma'), state.optics.chroma ? state.optics.chromaDispersion : 0);
+  gl.uniform1f(gl.getUniformLocation(glProgram, 'u_blur'), state.optics.blur);
+  gl.uniform1i(gl.getUniformLocation(glProgram, 'u_tiltShift'), state.optics.tiltShift ? 1 : 0);
+  gl.uniform1f(gl.getUniformLocation(glProgram, 'u_tiltPos'), state.optics.tiltPos);
+  gl.uniform1f(gl.getUniformLocation(glProgram, 'u_tiltWidth'), state.optics.tiltWidth);
+  gl.uniform1f(gl.getUniformLocation(glProgram, 'u_tiltAngle'), state.optics.tiltAngle);
+
+  gl.drawArrays(gl.TRIANGLES, 0, 6);
+}
+
+function setTool(toolName) {
+  currentTool = toolName;
+  document.querySelectorAll('.tool-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.tool === toolName);
+  });
+  $('statusToolBadge').textContent = 'Tool: ' + toolName.toUpperCase();
+}
+
+const activePointers = new Map();
+let navGesture = null;
+
+function getTouchPair() {
+  const pts = [...activePointers.values()];
+  return pts.length >= 2 ? [pts[0], pts[1]] : null;
+}
+
+function beginTouchNavigation() {
+  const pair = getTouchPair();
+  if (!pair) return false;
+  activeDrawing = null;
+  transformDrag = null;
+  const mid = { x: (pair[0].x + pair[1].x) / 2, y: (pair[0].y + pair[1].y) / 2 };
+  const dist = Math.max(1, Math.hypot(pair[0].x - pair[1].x, pair[0].y - pair[1].y));
+  navGesture = {
+    startMid: mid,
+    startDist: dist,
+    startZoom: zoom,
+    startPan: { ...pan },
+    anchor: toWorld(mid)
+  };
+  return true;
+}
+
+stage.addEventListener('pointerdown', e => {
+  try { stage.setPointerCapture(e.pointerId); } catch (_) {}
+  const rawPt = getPointerPos(e);
+  currentPointer = rawPt;
+  activePointers.set(e.pointerId, rawPt);
+
+  if (activePointers.size >= 2) {
+    beginTouchNavigation();
+    return;
+  }
+
+  if (e.button === 1 || isSpacePressed) {
+    isPanning = true;
+    panStart = { x: rawPt.x - pan.x, y: rawPt.y - pan.y };
+    return;
+  }
+
+  const worldPt = toWorld(rawPt);
+  const snappedPt = getSnappedPoint(worldPt);
+
+  if (currentTool === 'select') {
+    const hit = hitTestObject(worldPt);
+    selectedObjectId = hit ? hit.id : null;
+    updateInspectorObjectTab();
+    if (hit) {
+      recordHistory();
+      transformDrag = {
+        obj: hit,
+        startPt: snappedPt,
+        orig: JSON.parse(JSON.stringify(hit))
+      };
+    }
+    renderCanvas();
+    return;
+  }
+
+  if (currentTool === 'eraser') {
+    recordHistory();
+    const curLayer = getActiveLayer();
+    const hit = hitTestObject(worldPt);
+    if (hit) {
+      curLayer.objects = curLayer.objects.filter(x => x.id !== hit.id);
+      selectedObjectId = null;
+      markLayersDirty();
+      renderCanvas();
+      renderLayers();
+      toast('Object erased');
+    } else {
+      activeDrawing = {
+        id: nextObjectId++,
+        type: 'eraser_stroke',
+        points: [snappedPt],
+        radius: (state.strokeWidth || 4) * 4
+      };
+      renderCanvas();
+    }
+    return;
+  }
+
+  if (currentTool === 'text') {
+    pendingTextPos = snappedPt;
+    $('textModal').classList.add('open');
+    $('technicalTextInput').focus();
+    return;
+  }
+
+  recordHistory();
+  if (currentTool === 'pen') {
+    activeDrawing = {
+      id: nextObjectId++,
+      type: 'pen',
+      brushEngine: activeBrush,
+      points: [snappedPt],
+      stroke: state.strokeColor,
+      width: state.strokeWidth,
+      opacity: state.opacity,
+      smooth: state.smoothing
+    };
+  } else if (['line', 'arrow', 'dimension'].includes(currentTool)) {
+    activeDrawing = {
+      id: nextObjectId++,
+      type: currentTool,
+      x1: snappedPt.x,
+      y1: snappedPt.y,
+      x2: snappedPt.x,
+      y2: snappedPt.y,
+      stroke: state.strokeColor,
+      width: state.strokeWidth,
+      opacity: state.opacity
+    };
+  } else if (['rect', 'ellipse', 'block', 'pipe'].includes(currentTool)) {
+    activeDrawing = {
+      id: nextObjectId++,
+      type: currentTool,
+      x: snappedPt.x,
+      y: snappedPt.y,
+      w: 1,
+      h: 1,
+      stroke: state.strokeColor,
+      fill: state.fillColor,
+      fillMode: state.fillMode,
+      width: state.strokeWidth,
+      opacity: state.opacity
+    };
+  }
+  renderCanvas();
+});
+
+stage.addEventListener('pointermove', e => {
+  const rawPt = getPointerPos(e);
+  currentPointer = rawPt;
+  if (activePointers.has(e.pointerId)) activePointers.set(e.pointerId, rawPt);
+
+  if (activePointers.size >= 2) {
+    const pair = getTouchPair();
+    if (!navGesture) beginTouchNavigation();
+    if (pair && navGesture) {
+      const mid = { x: (pair[0].x + pair[1].x) / 2, y: (pair[0].y + pair[1].y) / 2 };
+      const dist = Math.max(1, Math.hypot(pair[0].x - pair[1].x, pair[0].y - pair[1].y));
+      zoom = Math.max(0.1, Math.min(32, navGesture.startZoom * (dist / navGesture.startDist)));
+      pan.x = mid.x - navGesture.anchor.x * zoom;
+      pan.y = mid.y - navGesture.anchor.y * zoom;
+      $('statusZoomBadge').textContent = Math.round(zoom * 100) + '%';
+      renderCanvas();
+    }
+    return;
+  }
+
+  $('cadCrosshairBadge').style.left = rawPt.x + 'px';
+  $('cadCrosshairBadge').style.top = rawPt.y + 'px';
+
+  if (isPanning) {
+    pan.x = rawPt.x - panStart.x;
+    pan.y = rawPt.y - panStart.y;
+    renderCanvas();
+    return;
+  }
+
+  const worldPt = toWorld(rawPt);
+  let snappedPt = getSnappedPoint(worldPt);
+
+  $('statusCoordBadge').textContent = `X: ${Math.round(snappedPt.x)}  Y: ${Math.round(snappedPt.y)}`;
+  $('cadCrosshairBadge').textContent = `X: ${Math.round(snappedPt.x)} Y: ${Math.round(snappedPt.y)}`;
+
+  if (isProMode) {
+    $('hudX').textContent = Math.round(snappedPt.x);
+    $('hudY').textContent = Math.round(snappedPt.y);
+  }
+
+  if (transformDrag) {
+    const dx = snappedPt.x - transformDrag.startPt.x;
+    const dy = snappedPt.y - transformDrag.startPt.y;
+    const orig = transformDrag.orig;
+    const o = transformDrag.obj;
+
+    if (['line', 'arrow', 'dimension'].includes(o.type)) {
+      o.x1 = orig.x1 + dx; o.y1 = orig.y1 + dy;
+      o.x2 = orig.x2 + dx; o.y2 = orig.y2 + dy;
+    } else if (o.type === 'pen' && o.points) {
+      o.points = orig.points.map(p => ({ x: p.x + dx, y: p.y + dy }));
+    } else {
+      o.x = orig.x + dx;
+      o.y = orig.y + dy;
+    }
+    renderCanvas();
+    return;
+  }
+
+  if (activeDrawing) {
+    if (activeDrawing.type === 'eraser_stroke') {
+      activeDrawing.points.push(snappedPt);
+      const r = activeDrawing.radius / zoom;
+      const curLayer = getActiveLayer();
+      curLayer.objects = curLayer.objects.filter(obj => {
+        if (obj.type === 'pen' && obj.points) {
+          obj.points = obj.points.filter(p => Math.hypot(p.x - snappedPt.x, p.y - snappedPt.y) > r);
+          return obj.points.length > 1;
+        }
+        const b = getObjectBounds(obj);
+        if (snappedPt.x >= b.x - r && snappedPt.x <= b.x + b.w + r && snappedPt.y >= b.y - r && snappedPt.y <= b.y + b.h + r) {
+          return false;
+        }
+        return true;
+      });
+      renderCanvas();
+      return;
+    }
+    if (activeDrawing.type === 'pen') {
+      activeDrawing.points.push(snappedPt);
+    } else if (['line', 'arrow', 'dimension'].includes(activeDrawing.type)) {
+      snappedPt = applyOrthoSnap({ x: activeDrawing.x1, y: activeDrawing.y1 }, snappedPt);
+      activeDrawing.x2 = snappedPt.x;
+      activeDrawing.y2 = snappedPt.y;
+
+      if (isProMode) {
+        const dx = snappedPt.x - activeDrawing.x1;
+        const dy = snappedPt.y - activeDrawing.y1;
+        $('hudDx').textContent = Math.round(dx);
+        $('hudDy').textContent = Math.round(dy);
+        $('hudDist').textContent = Math.round(Math.hypot(dx, dy));
+        $('hudAngle').textContent = Math.round((Math.atan2(dy, dx) * 180) / Math.PI) + '°';
+      }
+    } else if (['rect', 'ellipse', 'block', 'pipe'].includes(activeDrawing.type)) {
+      activeDrawing.w = snappedPt.x - activeDrawing.x;
+      activeDrawing.h = snappedPt.y - activeDrawing.y;
+    }
+    renderCanvas();
+  } else if (showCrosshair) {
+    renderOverlay(stage.clientWidth, stage.clientHeight);
+  }
+});
+
+function endPointerGesture(e) {
+  if (e && e.pointerId) activePointers.delete(e.pointerId);
+  if (navGesture && activePointers.size < 2) navGesture = null;
+
+  isPanning = false;
+  transformDrag = null;
+
+  if (activeDrawing) {
+    if (activeDrawing.type === 'eraser_stroke') {
+      activeDrawing = null;
+      markLayersDirty();
+      renderCanvas();
+      renderLayers();
+      return;
+    }
+    if (['rect', 'ellipse', 'block', 'pipe'].includes(activeDrawing.type)) {
+      if (activeDrawing.w < 0) {
+        activeDrawing.x += activeDrawing.w;
+        activeDrawing.w = Math.abs(activeDrawing.w);
+      }
+      if (activeDrawing.h < 0) {
+        activeDrawing.y += activeDrawing.h;
+        activeDrawing.h = Math.abs(activeDrawing.h);
+      }
+    }
+    getActiveLayer().objects.push(activeDrawing);
+    selectedObjectId = activeDrawing.id;
+    activeDrawing = null;
+    markLayersDirty();
+    renderCanvas();
+    renderLayers();
+    updateInspectorObjectTab();
+  }
+}
+
+stage.addEventListener('pointerup', e => endPointerGesture(e));
+stage.addEventListener('pointercancel', e => endPointerGesture(e));
+
+stage.addEventListener('wheel', e => {
+  e.preventDefault();
+  const rawPt = getPointerPos(e);
+  const worldPtBefore = toWorld(rawPt);
+  const factor = e.deltaY < 0 ? 1.15 : 0.87;
+  zoom = Math.max(0.1, Math.min(32, zoom * factor));
+  pan.x = rawPt.x - worldPtBefore.x * zoom;
+  pan.y = rawPt.y - worldPtBefore.y * zoom;
+  $('statusZoomBadge').textContent = Math.round(zoom * 100) + '%';
+  renderCanvas();
+}, { passive: false });
+
+window.addEventListener('keydown', e => {
+  if (['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement?.tagName)) return;
+
+  if (e.code === 'Space') {
+    isSpacePressed = true;
+    e.preventDefault();
+  } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
+    e.preventDefault();
+    e.shiftKey ? redo() : undo();
+  } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'y') {
+    e.preventDefault();
+    redo();
+  } else if (e.key === 'Delete' || e.key === 'Backspace') {
+    deleteSelectedObject();
+  } else if (e.key.toLowerCase() === 'z') {
+    toggleZenMode();
+  } else if (e.key.toLowerCase() === 'v') {
+    setTool('select');
+  } else if (e.key.toLowerCase() === 'p') {
+    setTool('pen');
+  } else if (e.key.toLowerCase() === 'l') {
+    setTool('line');
+  }
+});
+
+window.addEventListener('keyup', e => {
+  if (e.code === 'Space') isSpacePressed = false;
+});
+
+function initBrushGrid() {
+  const grid = $('brushLibraryGrid');
+  grid.innerHTML = '';
+  BRUSHES.forEach(b => {
+    const card = document.createElement('div');
+    card.className = 'brush-card' + (b.id === activeBrush ? ' active' : '');
+    card.dataset.brushId = b.id;
+    card.innerHTML = `
+      <div class="brush-card-top">
+        <svg class="icon icon-sm" style="stroke:var(--accent-cyan)"><use href="#icon-pen"/></svg>
+        <div class="brush-name">${b.name}</div>
+      </div>
+      <div class="brush-cat">${b.cat}</div>
+    `;
+    card.onclick = () => {
+      activeBrush = b.id;
+      document.querySelectorAll('.brush-card').forEach(c => c.classList.remove('active'));
+      card.classList.add('active');
+      setTool('pen');
+      toast(b.name + ' selected');
+    };
+    grid.appendChild(card);
+  });
+}
+
+function renderLayers() {
+  const container = $('layerListContainer');
+  container.innerHTML = '';
+
+  layers.slice().reverse().forEach(l => {
+    const card = document.createElement('div');
+    card.className = 'layer-card' + (l.id === activeLayerId ? ' selected' : '');
+
+    card.innerHTML = `
+      <div class="layer-main">
+        <canvas class="layer-thumb" id="layerThumb_${l.id}" width="44" height="32"></canvas>
+        <div class="layer-info">
+          <div class="layer-title-bar">
+            <input type="text" class="layer-name-input" value="${l.name}">
+            <div class="layer-controls">
+              <button class="layer-icon-btn ${l.visible ? 'active' : ''}" title="Toggle Visibility">
+                <svg class="icon icon-sm"><use href="#icon-eye"/></svg>
+              </button>
+              <button class="layer-icon-btn ${l.locked ? 'active' : ''}" title="Lock Layer">
+                <svg class="icon icon-sm"><use href="#icon-lock"/></svg>
+              </button>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px">
+            <input type="range" class="layer-opacity-slider" min="0" max="100" value="${Math.round(l.opacity * 100)}" style="flex:1;height:4px">
+            <span style="font-size:9px;color:var(--text-muted)">${Math.round(l.opacity * 100)}%</span>
+          </div>
+        </div>
+      </div>
+      <div class="layer-items-tree">
+        ${l.objects.map((o, idx) => `
+          <div class="layer-sub-item ${o.id === selectedObjectId ? 'active' : ''}" data-obj-id="${o.id}">
+            <span>#${idx + 1} ${o.type.toUpperCase()}</span>
+            <span style="opacity:0.6">${o.width ? o.width + 'px' : ''}</span>
+          </div>
+        `).join('')}
+      </div>
+    `;
+
+    card.querySelector('.layer-name-input').onchange = e => {
+      l.name = e.target.value.trim() || 'Layer';
+    };
+    card.querySelector('.layer-controls button:first-child').onclick = e => {
+      e.stopPropagation();
+      l.visible = !l.visible;
+      renderCanvas();
+      renderLayers();
+    };
+    card.querySelector('.layer-controls button:last-child').onclick = e => {
+      e.stopPropagation();
+      l.locked = !l.locked;
+      renderLayers();
+    };
+    card.querySelector('.layer-opacity-slider').oninput = e => {
+      l.opacity = +e.target.value / 100;
+      renderCanvas();
+    };
+    card.onclick = () => {
+      activeLayerId = l.id;
+      renderLayers();
+      renderCanvas();
+    };
+
+    card.querySelectorAll('.layer-sub-item').forEach(sub => {
+      sub.onclick = e => {
+        e.stopPropagation();
+        selectedObjectId = +sub.dataset.objId;
+        renderCanvas();
+        renderLayers();
+        updateInspectorObjectTab();
+      };
+    });
+
+    container.appendChild(card);
+  });
+}
+
+let layerThumbnailsDirty = true;
+function markLayersDirty() { layerThumbnailsDirty = true; }
+function updateLayerThumbnails() {
+  layerThumbnailsDirty = false;
+  layers.forEach(l => {
+    const thumbCanvas = $(`layerThumb_${l.id}`);
+    if (!thumbCanvas) return;
+    const tCtx = thumbCanvas.getContext('2d');
+    tCtx.clearRect(0, 0, 44, 32);
+    tCtx.fillStyle = '#031530';
+    tCtx.fillRect(0, 0, 44, 32);
+
+    tCtx.save();
+    tCtx.scale(0.04, 0.04);
+    tCtx.translate(200, 200);
+    l.objects.forEach(o => drawObject(tCtx, o, 1.0));
+    tCtx.restore();
+  });
+}
+
+function updateInspectorObjectTab() {
+  const statusEl = $('objectSelectedStatus');
+  const clusterEl = $('objectControlCluster');
+
+  if (!selectedObjectId) {
+    statusEl.textContent = 'No object selected. Click with Select Tool to edit.';
+    clusterEl.style.display = 'none';
+    return;
+  }
+  const found = findObject(selectedObjectId);
+  if (!found) {
+    selectedObjectId = null;
+    statusEl.textContent = 'No object selected.';
+    clusterEl.style.display = 'none';
+    return;
+  }
+  statusEl.innerHTML = `Selected: <strong>${found.obj.type.toUpperCase()}</strong> (Layer: ${found.layer.name})`;
+  clusterEl.style.display = 'flex';
+}
+
+function deleteSelectedObject() {
+  if (!selectedObjectId) return;
+  recordHistory();
+  const curLayer = getActiveLayer();
+  curLayer.objects = curLayer.objects.filter(o => o.id !== selectedObjectId);
+  selectedObjectId = null;
+  renderCanvas();
+  renderLayers();
+  updateInspectorObjectTab();
+  toast('Object deleted');
+}
+
+$('objDeleteBtn').onclick = deleteSelectedObject;
+
+$('objDuplicateBtn').onclick = () => {
+  if (!selectedObjectId) return;
+  const found = findObject(selectedObjectId);
+  if (!found) return;
+  recordHistory();
+  const copy = JSON.parse(JSON.stringify(found.obj));
+  copy.id = nextObjectId++;
+  if (['line', 'arrow', 'dimension'].includes(copy.type)) {
+    copy.x1 += 20; copy.x2 += 20; copy.y1 += 20; copy.y2 += 20;
+  } else if (copy.type === 'pen' && copy.points) {
+    copy.points = copy.points.map(p => ({ x: p.x + 20, y: p.y + 20 }));
+  } else {
+    copy.x += 20; copy.y += 20;
+  }
+  found.layer.objects.push(copy);
+  selectedObjectId = copy.id;
+  renderCanvas();
+  renderLayers();
+  toast('Object duplicated');
+};
+
+$('objFlipHBtn').onclick = () => {
+  if (!selectedObjectId) return;
+  const found = findObject(selectedObjectId);
+  if (!found) return;
+  recordHistory();
+  const b = getObjectBounds(found.obj);
+  const midX = b.x + b.w / 2;
+  const o = found.obj;
+  if (['line', 'arrow', 'dimension'].includes(o.type)) {
+    o.x1 = midX - (o.x1 - midX);
+    o.x2 = midX - (o.x2 - midX);
+  } else if (o.type === 'pen' && o.points) {
+    o.points.forEach(p => p.x = midX - (p.x - midX));
+  }
+  renderCanvas();
+  toast('Flipped horizontally');
+};
+
+$('objFlipVBtn').onclick = () => {
+  if (!selectedObjectId) return;
+  const found = findObject(selectedObjectId);
+  if (!found) return;
+  recordHistory();
+  const b = getObjectBounds(found.obj);
+  const midY = b.y + b.h / 2;
+  const o = found.obj;
+  if (['line', 'arrow', 'dimension'].includes(o.type)) {
+    o.y1 = midY - (o.y1 - midY);
+    o.y2 = midY - (o.y2 - midY);
+  } else if (o.type === 'pen' && o.points) {
+    o.points.forEach(p => p.y = midY - (p.y - midY));
+  }
+  renderCanvas();
+  toast('Flipped vertically');
+};
+
+$('layerAddBtn').onclick = () => {
+  recordHistory();
+  const newL = {
+    id: nextLayerId++,
+    name: 'Layer ' + nextLayerId,
+    visible: true,
+    locked: false,
+    opacity: 1.0,
+    blendMode: 'source-over',
+    objects: []
+  };
+  layers.push(newL);
+  activeLayerId = newL.id;
+  renderLayers();
+  renderCanvas();
+  toast('New layer added');
+};
+
+$('layerDuplicateBtn').onclick = () => {
+  recordHistory();
+  const cur = getActiveLayer();
+  const dup = JSON.parse(JSON.stringify(cur));
+  dup.id = nextLayerId++;
+  dup.name = cur.name + ' Copy';
+  dup.objects.forEach(o => o.id = nextObjectId++);
+  layers.push(dup);
+  activeLayerId = dup.id;
+  renderLayers();
+  renderCanvas();
+  toast('Layer duplicated');
+};
+
+$('layerDeleteBtn').onclick = () => {
+  if (layers.length <= 1) return toast('Must maintain at least 1 layer');
+  recordHistory();
+  layers = layers.filter(l => l.id !== activeLayerId);
+  activeLayerId = layers[0].id;
+  selectedObjectId = null;
+  renderLayers();
+  renderCanvas();
+  toast('Layer deleted');
+};
+
+$('layerImportImgBtn').onclick = $('importImgToolBtn').onclick = () => {
+  $('imageFileInput').click();
+};
+
+$('imageFileInput').onchange = e => {
+  const f = e.target.files[0];
+  if (!f) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    recordHistory();
+    const imgObj = {
+      id: nextObjectId++,
+      type: 'image',
+      src: ev.target.result,
+      x: -pan.x / zoom + 50,
+      y: -pan.y / zoom + 50,
+      w: 400,
+      h: 300,
+      opacity: 1.0
+    };
+    getActiveLayer().objects.push(imgObj);
+    selectedObjectId = imgObj.id;
+    renderCanvas();
+    renderLayers();
+    toast('Image imported onto active layer');
+  };
+  reader.readAsDataURL(f);
+  e.target.value = '';
+};
+
+const sideDrawer = $('sideDrawer');
+const panelBackdrop = $('panelBackdrop');
+
+function togglePanel(forceOpen) {
+  const isMobile = window.innerWidth <= 860;
+  if (isMobile) {
+    const shouldOpen = forceOpen !== undefined ? forceOpen : !sideDrawer.classList.contains('open-mobile');
+    sideDrawer.classList.toggle('open-mobile', shouldOpen);
+    panelBackdrop.classList.toggle('show', shouldOpen);
+    $('topPanelBtn').classList.toggle('active', shouldOpen);
+  } else {
+    const isCurrentlyHidden = sideDrawer.classList.contains('hidden');
+    const shouldShow = forceOpen !== undefined ? forceOpen : isCurrentlyHidden;
+    sideDrawer.classList.toggle('hidden', !shouldShow);
+    $('topPanelBtn').classList.toggle('active', shouldShow);
+  }
+}
+
+$('topPanelBtn').onclick = () => togglePanel();
+$('closePanelBtn').onclick = () => togglePanel(false);
+panelBackdrop.onclick = () => togglePanel(false);
+
+document.querySelectorAll('.panel-tab').forEach(tabBtn => {
+  tabBtn.onclick = () => {
+    document.querySelectorAll('.panel-tab').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.panel-tab-content').forEach(c => c.classList.remove('active'));
+    tabBtn.classList.add('active');
+    const targetContent = $(tabBtn.dataset.tab);
+    if (targetContent) targetContent.classList.add('active');
+    $('panelActiveTitle').textContent = tabBtn.textContent;
+  };
+});
+
+function toggleZenMode() {
+  isZenMode = !isZenMode;
+  document.body.classList.toggle('zen-mode', isZenMode);
+  if (isZenMode) toast('Clean Mode active. Press Z to exit');
+}
+$('topZenBtn').onclick = toggleZenMode;
+$('zenExitBtn').onclick = toggleZenMode;
+
+function syncQuickPinBar() {
+  const container = $('quickPinContainer');
+  container.innerHTML = '';
+  pinnedShortcuts.forEach(pinKey => {
+    const btn = document.createElement('button');
+    btn.dataset.pinKey = pinKey;
+    if (pinKey === 'grid-toggle') {
+      btn.innerHTML = `<svg class="icon icon-sm"><use href="#icon-grid"/></svg><span>Grid</span>`;
+      btn.classList.toggle('active', showGrid);
+      btn.onclick = () => $('swGridToggle').click();
+    } else if (pinKey === 'swSnapToggle') {
+      btn.innerHTML = `<svg class="icon icon-sm"><use href="#icon-snap"/></svg><span>Snap</span>`;
+      btn.classList.toggle('active', snapToGrid);
+      btn.onclick = () => $('swSnapToggle').click();
+    } else if (pinKey === 'pro-quick') {
+      btn.innerHTML = `<svg class="icon icon-sm"><use href="#icon-pro"/></svg><span>Pro</span>`;
+      btn.classList.toggle('active', isProMode);
+      btn.onclick = () => $('swProMode').click();
+    } else if (pinKey === 'optics-quick') {
+      btn.innerHTML = `<svg class="icon icon-sm"><use href="#icon-spark"/></svg><span>Glass</span>`;
+      btn.classList.toggle('active', state.optics.glass);
+      btn.onclick = () => $('swGlassActive').click();
+    }
+    container.appendChild(btn);
+  });
+}
+
+document.querySelectorAll('.pin-btn').forEach(pb => {
+  const pinKey = pb.dataset.pin;
+  pb.classList.toggle('pinned', pinnedShortcuts.includes(pinKey));
+  pb.onclick = e => {
+    e.stopPropagation();
+    if (pinnedShortcuts.includes(pinKey)) {
+      pinnedShortcuts = pinnedShortcuts.filter(x => x !== pinKey);
+      pb.classList.remove('pinned');
+      toast('Unpinned from top bar');
+    } else {
+      pinnedShortcuts.push(pinKey);
+      pb.classList.add('pinned');
+      toast('Pinned to top bar');
+    }
+    syncQuickPinBar();
+  };
+});
+
+$('swGridToggle').onclick = () => {
+  showGrid = !showGrid;
+  $('swGridToggle').classList.toggle('active', showGrid);
+  renderCanvas();
+  syncQuickPinBar();
+};
+
+$('swSnapToggle').onclick = () => {
+  snapToGrid = !snapToGrid;
+  $('swSnapToggle').classList.toggle('active', snapToGrid);
+  toast(snapToGrid ? 'Grid Snapping Enabled' : 'Snapping Disabled');
+  syncQuickPinBar();
+};
+
+$('swCrosshairToggle').onclick = () => {
+  showCrosshair = !showCrosshair;
+  $('swCrosshairToggle').classList.toggle('active', showCrosshair);
+  $('cadCrosshairBadge').style.display = showCrosshair ? 'block' : 'none';
+  renderCanvas();
+};
+
+$('swProMode').onclick = () => {
+  isProMode = !isProMode;
+  $('swProMode').classList.toggle('active', isProMode);
+  document.body.classList.toggle('pro-mode', isProMode);
+  $('statusProBadge').style.display = isProMode ? 'inline-block' : 'none';
+  syncQuickPinBar();
+  toast(isProMode ? 'Pro CAD Mode Activated' : 'Standard Workspace');
+};
+
+$('swOrthoSnap').onclick = () => {
+  isOrthoSnap = !isOrthoSnap;
+  $('swOrthoSnap').classList.toggle('active', isOrthoSnap);
+};
+
+$('swCadSnapMagnetic').onclick = () => {
+  isCadSnapMagnetic = !isCadSnapMagnetic;
+  $('swCadSnapMagnetic').classList.toggle('active', isCadSnapMagnetic);
+};
+
+$('swTitleBlock').onclick = () => {
+  state.showTitleBlock = !state.showTitleBlock;
+  $('swTitleBlock').classList.toggle('active', state.showTitleBlock);
+  renderCanvas();
+};
+
+$('swGlassActive').onclick = () => {
+  state.optics.glass = !state.optics.glass;
+  $('swGlassActive').classList.toggle('active', state.optics.glass);
+  document.body.classList.toggle('noglass', !state.optics.glass);
+  syncQuickPinBar();
+};
+
+$('swLiquidRefraction').onclick = () => {
+  state.optics.liquid = !state.optics.liquid;
+  $('swLiquidRefraction').classList.toggle('active', state.optics.liquid);
+  renderCanvas();
+};
+
+$('swChromaticShift').onclick = () => {
+  state.optics.chroma = !state.optics.chroma;
+  $('swChromaticShift').classList.toggle('active', state.optics.chroma);
+  renderCanvas();
+};
+
+$('swTiltShiftActive').onclick = () => {
+  state.optics.tiltShift = !state.optics.tiltShift;
+  $('swTiltShiftActive').classList.toggle('active', state.optics.tiltShift);
+  renderCanvas();
+};
+
+$('opticsTiltPos').oninput = e => { state.optics.tiltPos = +e.target.value / 100; renderCanvas(); };
+$('opticsTiltWidth').oninput = e => { state.optics.tiltWidth = +e.target.value / 100; renderCanvas(); };
+$('opticsTiltAngle').oninput = e => { state.optics.tiltAngle = +e.target.value; renderCanvas(); };
+
+$('propStrokeColor').oninput = e => state.strokeColor = e.target.value;
+$('propFillColor').oninput = e => state.fillColor = e.target.value;
+$('propFillMode').onchange = e => state.fillMode = e.target.value;
+$('propStrokeWidth').oninput = e => {
+  state.strokeWidth = +e.target.value;
+  $('strokeWidthVal').textContent = e.target.value;
+};
+$('propOpacity').oninput = e => {
+  state.opacity = +e.target.value / 100;
+  $('opacityVal').textContent = e.target.value;
+};
+$('propSmoothing').oninput = e => {
+  state.smoothing = +e.target.value;
+  $('smoothingVal').textContent = e.target.value;
+};
+
+$('canvasGridMode').onchange = e => { state.gridMode = e.target.value; renderCanvas(); };
+$('canvasGridSize').onchange = e => { state.gridSize = Math.max(4, +e.target.value || 25); renderCanvas(); };
+$('canvasSubdiv').onchange = e => { state.gridSubdiv = +e.target.value; renderCanvas(); };
+$('canvasBgColor').oninput = e => { state.canvasBg = e.target.value; renderCanvas(); };
+$('canvasGridColor').oninput = e => { state.gridColor = e.target.value; renderCanvas(); };
+$('canvasGridOpacity').oninput = e => { state.gridOpacity = +e.target.value / 100; renderCanvas(); };
+
+$('viewCenterBtn').onclick = () => {
+  pan.x = stage.clientWidth / 2;
+  pan.y = stage.clientHeight / 2;
+  renderCanvas();
+};
+$('viewResetZoomBtn').onclick = () => {
+  zoom = 1.0;
+  $('statusZoomBadge').textContent = '100%';
+  renderCanvas();
+};
+
+$('topAiBtn').onclick = () => $('aiModal').classList.add('open');
+$('closeAiModalBtn').onclick = $('cancelAiBtn').onclick = () => $('aiModal').classList.remove('open');
+
+$('aiProviderSelect').onchange = e => {
+  const val = e.target.value;
+  $('aiEndpointRow').style.display = val === 'custom' ? 'flex' : 'none';
+  if (val === 'gemini') $('aiModelInput').value = 'gemini-2.5-flash';
+  else if (val === 'openai') $('aiModelInput').value = 'gpt-4o';
+  else if (val === 'claude') $('aiModelInput').value = 'claude-3-5-sonnet-20241022';
+  else $('aiModelInput').value = 'deepseek-chat';
+};
+
+$('generateAiLineworkBtn').onclick = async () => {
+  const provider = $('aiProviderSelect').value;
+  const key = $('aiApiKeyInput').value.trim();
+  const prompt = $('aiPromptInput').value.trim();
+  const model = $('aiModelInput').value.trim();
+  const style = $('aiStylePreset').value;
+
+  if (!prompt) return toast('Please enter a description for the sketch');
+  // If no key is provided for Gemini, server-side proxy will be utilized automatically
+
+  const btn = $('generateAiLineworkBtn');
+  btn.disabled = true;
+  btn.textContent = 'Synthesizing Vector...';
+
+  const systemInstructions = `You are a precision CAD vector engine. Generate a technical vector drawing based on: "${prompt}".
+Style: ${style}.
+OUTPUT RULES:
+- Output ONLY valid, sanitized SVG code enclosed inside <svg ...> and </svg>.
+- Do not include markdown codeblocks or text explanations.
+- Set viewBox="0 0 800 600". Use transparent background.
+- Use stroke="#ffffff", fill="none", stroke-width="2".
+- Use path, line, rect, circle, ellipse, polyline, and text elements only. No scripts or images.`;
+
+  try {
+    let svgRaw = '';
+    if (provider === 'gemini') {
+      if (!key) {
+        // Automatically utilize server-side /api/gemini route
+        const res = await fetch('/api/gemini', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ prompt, style, model: model || 'gemini-3.8-flash' })
+        });
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          throw new Error(errData.error || `Gemini proxy error: ${res.status}`);
+        }
+        const data = await res.json();
+        svgRaw = data.svg || data.raw || '';
+      } else {
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(key)}`;
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ contents: [{ parts: [{ text: systemInstructions }] }] })
+        });
+        if (!res.ok) throw new Error(`Gemini error: ${res.status}`);
+        const data = await res.json();
+        svgRaw = data.candidates?.[0]?.content?.parts?.map(p => p.text).join('') || '';
+      }
+    } else if (provider === 'openai' || provider === 'custom') {
+      const endpoint = provider === 'custom' ? $('aiCustomEndpoint').value.trim() : 'https://api.openai.com/v1/chat/completions';
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${key}`
+        },
+        body: JSON.stringify({
+          model,
+          messages: [{ role: 'user', content: systemInstructions }]
+        })
+      });
+      if (!res.ok) throw new Error(`AI error: ${res.status}`);
+      const data = await res.json();
+      svgRaw = data.choices?.[0]?.message?.content || '';
+    } else if (provider === 'claude') {
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': key,
+          'anthropic-version': '2023-06-01',
+          'anthropic-dangerous-direct-browser-access': 'true'
+        },
+        body: JSON.stringify({
+          model,
+          max_tokens: 4000,
+          messages: [{ role: 'user', content: systemInstructions }]
+        })
+      });
+      if (!res.ok) throw new Error(`Claude error: ${res.status}`);
+      const data = await res.json();
+      svgRaw = data.content?.[0]?.text || '';
+    }
+
+    const svgMatch = svgRaw.match(/<svg[\s\S]*<\/svg>/i);
+    if (!svgMatch) throw new Error('Could not parse SVG linework. Try a simpler prompt.');
+
+    const cleanSvg = svgMatch[0].replace(/```/g, '');
+    recordHistory();
+    const aiObj = {
+      id: nextObjectId++,
+      type: 'svg',
+      svg: cleanSvg,
+      x: -pan.x / zoom + 50,
+      y: -pan.y / zoom + 50,
+      w: 500,
+      h: 375,
+      stroke: '#ffffff',
+      opacity: 1.0
+    };
+    getActiveLayer().objects.push(aiObj);
+    selectedObjectId = aiObj.id;
+    $('aiModal').classList.remove('open');
+    renderCanvas();
+    renderLayers();
+    toast('AI vector linework placed on layer');
+  } catch (err) {
+    toast(err.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Generate Vector Object';
+  }
+};
+
+$('topExportBtn').onclick = () => $('exportModal').classList.add('open');
+$('closeExportModalBtn').onclick = $('cancelExportBtn').onclick = () => $('exportModal').classList.remove('open');
+
+
+// --- PNG Metadata & Project Format Utilities ---
+const PNG_SIG = 'BlueprintStudio';
+const CRC_TABLE = (() => {
+  const t = [];
+  for (let n = 0; n < 256; n++) {
+    let c = n;
+    for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1;
+    t[n] = c >>> 0;
+  }
+  return t;
+})();
+
+const calcCrc = u => {
+  let c = -1;
+  for (let i = 0; i < u.length; i++) c = CRC_TABLE[(c ^ u[i]) & 255] ^ (c >>> 8);
+  return (c ^ -1) >>> 0;
+};
+
+const toBase64 = str => {
+  const u = new TextEncoder().encode(str);
+  let r = '';
+  for (let i = 0; i < u.length; i += 8192) r += String.fromCharCode.apply(null, u.subarray(i, i + 8192));
+  return btoa(r);
+};
+
+const fromBase64 = b64 => {
+  return new TextDecoder().decode(Uint8Array.from(atob(b64), c => c.charCodeAt(0)));
+};
+
+async function pngWithProject(blob, projectData) {
+  const u = new Uint8Array(await blob.arrayBuffer());
+  const txt = PNG_SIG + '\0' + toBase64(JSON.stringify(projectData));
+  const d = new Uint8Array(txt.length);
+  for (let i = 0; i < txt.length; i++) d[i] = txt.charCodeAt(i);
+  const c = new Uint8Array(12 + d.length);
+  const v = new DataView(c.buffer);
+  v.setUint32(0, d.length);
+  c.set([116, 69, 88, 116], 4); // 'tEXt'
+  c.set(d, 8);
+  v.setUint32(8 + d.length, calcCrc(c.subarray(4, 8 + d.length)));
+  return new Blob([u.subarray(0, u.length - 12), c, u.subarray(u.length - 12)], { type: 'image/png' });
+}
+
+function readPng(u) {
+  if (u.length < 20 || u[0] !== 137 || u[1] !== 80) return null;
+  const v = new DataView(u.buffer, u.byteOffset, u.byteLength);
+  for (let o = 8; o + 12 <= u.length;) {
+    const n = v.getUint32(o);
+    const t = String.fromCharCode(...u.subarray(o + 4, o + 8));
+    if (t === 'tEXt') {
+      const d = u.subarray(o + 8, o + 8 + n);
+      const z = d.indexOf(0);
+      if (z > 0 && String.fromCharCode(...d.subarray(0, z)) === PNG_SIG) {
+        let x = '';
+        for (let i = z + 1; i < d.length; i += 8192) x += String.fromCharCode.apply(null, d.subarray(i, i + 8192));
+        return JSON.parse(fromBase64(x));
+      }
+    }
+    if (t === 'IEND') break;
+    o += 12 + n;
+  }
+  return null;
+}
+
+function getProjectData() {
+  return {
+    format: 'BlueprintStudio',
+    version: 3,
+    app: 'Blueprint Studio CAD & Vector Suite',
+    saved: new Date().toISOString(),
+    layers: JSON.parse(JSON.stringify(layers)),
+    activeLayerId,
+    nextObjectId,
+    nextLayerId,
+    view: { zoom, pan },
+    settings: {
+      ...JSON.parse(JSON.stringify(state)),
+      strokeColor: state.strokeColor,
+      fillColor: state.fillColor,
+      fillMode: state.fillMode,
+      strokeWidth: state.strokeWidth,
+      opacity: state.opacity,
+      smoothing: state.smoothing,
+      canvasBg: state.canvasBg,
+      gridMode: state.gridMode,
+      gridSize: state.gridSize,
+      gridSubdiv: state.gridSubdiv,
+      gridColor: state.gridColor,
+      gridOpacity: state.gridOpacity,
+      showTitleBlock: state.showTitleBlock,
+      metadata: state.metadata
+    }
+  };
+}
+
+function downloadBlob(blob, filename) {
+  const a = document.createElement('a');
+  const u = URL.createObjectURL(blob);
+  a.href = u;
+  a.download = filename;
+  a.style.display = 'none';
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => {
+    a.remove();
+    URL.revokeObjectURL(u);
+  }, 4000);
+}
+
+function sanitizeFilename(name) {
+  return (name || 'blueprint').replace(/[^a-zA-Z0-9_-]/g, '_').toLowerCase();
+}
+
+function escapeXml(str) {
+  return String(str).replace(/[&<>"']/g, c => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&apos;'
+  }[c]));
+}
+
+function createExportCanvas(scaleFactor = 1.0, incGrid = true, incTitle = true, isTransparent = false) {
+  const w = Math.round(stage.clientWidth * scaleFactor);
+  const h = Math.round(stage.clientHeight * scaleFactor);
+  const expC = document.createElement('canvas');
+  expC.width = Math.max(1, w);
+  expC.height = Math.max(1, h);
+  const expCtx = expC.getContext('2d');
+
+  if (!isTransparent) {
+    expCtx.fillStyle = state.canvasBg;
+    expCtx.fillRect(0, 0, w, h);
+  }
+
+  expCtx.save();
+  expCtx.scale(scaleFactor, scaleFactor);
+  expCtx.translate(pan.x, pan.y);
+  expCtx.scale(zoom, zoom);
+
+  if (incGrid) {
+    drawGrid(expCtx, stage.clientWidth, stage.clientHeight);
+  }
+
+  for (const layer of layers) {
+    if (!layer.visible) continue;
+    expCtx.save();
+    expCtx.globalCompositeOperation = layer.blendMode || 'source-over';
+    for (const obj of layer.objects) {
+      drawObject(expCtx, obj, layer.opacity);
+    }
+    expCtx.restore();
+  }
+
+  if (incTitle && state.showTitleBlock) {
+    renderTitleBlock(expCtx, stage.clientWidth, stage.clientHeight);
+  }
+
+  expCtx.restore();
+  return expC;
+}
+
+function generateExportSvg(incGrid, incTitle, isTransparent, projectData) {
+  const w = stage.clientWidth;
+  const h = stage.clientHeight;
+  const bg = isTransparent ? 'none' : state.canvasBg;
+  let s = `<?xml version="1.0" encoding="UTF-8"?>\n<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">\n`;
+  if (!isTransparent) {
+    s += `  <rect width="100%" height="100%" fill="${bg}"/>\n`;
+  }
+  s += `  <g transform="translate(${pan.x}, ${pan.y}) scale(${zoom})">\n`;
+
+  for (const l of layers) {
+    if (!l.visible) continue;
+    s += `    <g id="layer_${l.id}" opacity="${l.opacity}">\n`;
+    for (const o of l.objects) {
+      const stroke = o.stroke || '#ffffff';
+      const fill = o.fillMode === 'solid' ? (o.fill || stroke) : (o.fillMode === 'transparent' ? (o.fill || stroke) : 'none');
+      const fillOpacity = o.fillMode === 'transparent' ? '0.2' : '1.0';
+      const sw = o.width || 2;
+      const dash = o.dash === 'center' ? 'stroke-dasharray="16 5 3 5"' : (o.dash === 'dash' ? 'stroke-dasharray="8 6"' : (o.dash === 'dot' ? 'stroke-dasharray="2 5"' : ''));
+
+      if (o.type === 'rect') {
+        s += `      <rect x="${o.x}" y="${o.y}" width="${o.w}" height="${o.h}" stroke="${stroke}" stroke-width="${sw}" fill="${fill}" fill-opacity="${fillOpacity}" ${dash}/>\n`;
+      } else if (o.type === 'ellipse') {
+        s += `      <ellipse cx="${o.x + o.w / 2}" cy="${o.y + o.h / 2}" rx="${Math.abs(o.w / 2)}" ry="${Math.abs(o.h / 2)}" stroke="${stroke}" stroke-width="${sw}" fill="${fill}" fill-opacity="${fillOpacity}" ${dash}/>\n`;
+      } else if (['line', 'arrow', 'dimension'].includes(o.type)) {
+        s += `      <line x1="${o.x1}" y1="${o.y1}" x2="${o.x2}" y2="${o.y2}" stroke="${stroke}" stroke-width="${sw}" ${dash}/>\n`;
+      } else if (o.type === 'pen' && o.points && o.points.length) {
+        const ptsStr = o.points.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
+        s += `      <polyline points="${ptsStr}" stroke="${stroke}" stroke-width="${sw}" fill="none" stroke-linecap="round" stroke-linejoin="round"/>\n`;
+      } else if (o.type === 'text') {
+        s += `      <text x="${o.x}" y="${o.y}" font-family="${o.font || 'JetBrains Mono'}" font-size="${o.size || 24}" fill="${stroke}">${escapeXml(o.text || '')}</text>\n`;
+      } else if (o.type === 'svg' && o.svg) {
+        s += `      <g transform="translate(${o.x}, ${o.y})">${o.svg}</g>\n`;
+      }
+    }
+    s += `    </g>\n`;
+  }
+  s += `  </g>\n`;
+  s += `  <metadata id="blueprint-studio">${toBase64(JSON.stringify(projectData))}</metadata>\n`;
+  s += `</svg>`;
+  return s;
+}
+
+$('confirmExportBtn').onclick = async () => {
+  const format = $('exportFormat').value;
+  const resChoice = $('exportResolution').value;
+  const incGrid = $('swExportGrid').classList.contains('active');
+  const incTitle = $('swExportTitleBlock').classList.contains('active');
+  const isTransparent = $('swExportTransparent').classList.contains('active');
+
+  let scaleFactor = 1.0;
+  if (resChoice === '1080p') scaleFactor = Math.max(1.0, 1920 / Math.max(1, stage.clientWidth));
+  else if (resChoice === '2k') scaleFactor = Math.max(1.0, 2560 / Math.max(1, stage.clientWidth));
+  else if (resChoice === '4k') scaleFactor = Math.max(1.0, 3840 / Math.max(1, stage.clientWidth));
+  else if (resChoice === '8k') scaleFactor = Math.max(1.0, 7680 / Math.max(1, stage.clientWidth));
+
+  const estW = Math.round(stage.clientWidth * scaleFactor);
+  const estH = Math.round(stage.clientHeight * scaleFactor);
+  if (estW > 8192 || estH > 8192) {
+    const clampRatio = 8192 / Math.max(estW, estH);
+    scaleFactor *= clampRatio;
+    toast(`Resolution clamped to safe hardware bounds (${Math.round(estW * clampRatio)}x${Math.round(estH * clampRatio)})`);
+  }
+
+  const projectData = getProjectData();
+
+    if (format === 'github_html') {
+    const fullSource = '<!doctype html>' + '\n' + document.documentElement.outerHTML;
+    downloadBlob(new Blob([fullSource], { type: 'text/html;charset=utf-8' }), 'index.html');
+    $('exportModal').classList.remove('open');
+    toast('index.html exported (Ready to drop into GitHub Pages)');
+    return;
+  }
+
+  if (format === 'json') {
+    const jsonStr = JSON.stringify(projectData, null, 2);
+    downloadBlob(new Blob([jsonStr], { type: 'application/json' }), `${sanitizeFilename(state.metadata.title || 'blueprint')}-project.json`);
+    $('exportModal').classList.remove('open');
+    toast('Native CAD Project exported (.json)');
+    return;
+  }
+
+  if (format === 'svg') {
+    const svgContent = generateExportSvg(incGrid, incTitle, isTransparent, projectData);
+    downloadBlob(new Blob([svgContent], { type: 'image/svg+xml' }), `${sanitizeFilename(state.metadata.title || 'blueprint')}.svg`);
+    $('exportModal').classList.remove('open');
+    toast('Scalable Vector Graphic exported (.svg)');
+    return;
+  }
+
+  const exportCanvasEl = createExportCanvas(scaleFactor, incGrid, incTitle, isTransparent);
+
+  if (format === 'jpeg') {
+    exportCanvasEl.toBlob(blob => {
+      if (!blob) return toast('JPEG export failed');
+      downloadBlob(blob, `${sanitizeFilename(state.metadata.title || 'blueprint')}.jpg`);
+      $('exportModal').classList.remove('open');
+      toast('JPEG Drafting Blueprint exported');
+    }, 'image/jpeg', 0.95);
+    return;
+  }
+
+  if (format === 'png_clean') {
+    exportCanvasEl.toBlob(blob => {
+      if (!blob) return toast('PNG export failed');
+      downloadBlob(blob, `${sanitizeFilename(state.metadata.title || 'blueprint')}.png`);
+      $('exportModal').classList.remove('open');
+      toast('Clean High-Res PNG exported');
+    }, 'image/png');
+    return;
+  }
+
+  // Default: png_project (PNG with embedded project JSON metadata)
+  exportCanvasEl.toBlob(async rawBlob => {
+    if (!rawBlob) return toast('PNG generation failed');
+    try {
+      const embeddedBlob = await pngWithProject(rawBlob, projectData);
+      downloadBlob(embeddedBlob, `${sanitizeFilename(state.metadata.title || 'blueprint')}-project.png`);
+      $('exportModal').classList.remove('open');
+      toast('High-Res PNG with embedded project metadata exported');
+    } catch (err) {
+      console.warn('PNG metadata embed error, falling back to clean PNG:', err);
+      downloadBlob(rawBlob, `${sanitizeFilename(state.metadata.title || 'blueprint')}.png`);
+      $('exportModal').classList.remove('open');
+      toast('Clean PNG exported (metadata fallback)');
+    }
+  }, 'image/png');
+};
+
+// --- Project Import & File Drag-and-Drop ---
+function applyProjectData(data) {
+  if (!data || typeof data !== 'object') throw new Error('Invalid project file');
+  let rawLayers = data.layers || (data.project && data.project.layers);
+  if (!Array.isArray(rawLayers) || !rawLayers.length) throw new Error('No valid layers found');
+
+  recordHistory();
+  layers = rawLayers.map((l, idx) => ({
+    id: +l.id > 0 ? +l.id : idx + 1,
+    name: String(l.name || 'Layer ' + (idx + 1)),
+    visible: l.visible !== false,
+    locked: !!l.locked,
+    opacity: +l.opacity >= 0 ? +l.opacity : 1.0,
+    blendMode: l.blendMode || 'source-over',
+    objects: Array.isArray(l.objects) ? l.objects : []
+  }));
+
+  activeLayerId = layers.some(l => l.id === data.activeLayerId) ? data.activeLayerId : layers[0].id;
+  nextObjectId = data.nextObjectId || 1000;
+  nextLayerId = data.nextLayerId || (layers.length + 1);
+
+  if (data.settings) {
+    if (data.settings.canvasBg) state.canvasBg = data.settings.canvasBg;
+    if (data.settings.gridMode) state.gridMode = data.settings.gridMode;
+    if (data.settings.gridSize) state.gridSize = data.settings.gridSize;
+    if (data.settings.gridSubdiv) state.gridSubdiv = data.settings.gridSubdiv;
+    if (data.settings.strokeColor) state.strokeColor = data.settings.strokeColor;
+    if (data.settings.fillColor) state.fillColor = data.settings.fillColor;
+    if (data.settings.metadata) Object.assign(state.metadata, data.settings.metadata);
+  }
+
+  if (data.view) {
+    if (data.view.zoom) zoom = Math.max(0.1, Math.min(32, +data.view.zoom));
+    if (data.view.pan) pan = { x: +data.view.pan.x || 0, y: +data.view.pan.y || 0 };
+    $('statusZoomBadge').textContent = Math.round(zoom * 100) + '%';
+  }
+
+  selectedObjectId = null;
+  markLayersDirty();
+  renderLayers();
+  renderCanvas();
+  toast('Project loaded successfully');
+}
+
+async function loadProjectFile(file) {
+  try {
+    if (file.type === 'image/png' || /\.png$/i.test(file.name)) {
+      const buffer = new Uint8Array(await file.arrayBuffer());
+      const projectData = readPng(buffer);
+      if (!projectData) throw new Error('This PNG does not contain embedded Blueprint Studio project metadata.');
+      applyProjectData(projectData);
+    } else {
+      const textContent = await file.text();
+      if (/^\s*</.test(textContent)) {
+        // SVG file: check for <metadata id="blueprint-studio">
+        const match = textContent.match(/<metadata id="blueprint-studio">([A-Za-z0-9+/=\s]+)<\/metadata>/);
+        if (!match) throw new Error('This SVG does not contain embedded Blueprint Studio project metadata.');
+        const projectData = JSON.parse(fromBase64(match[1].replace(/\s/g, '')));
+        applyProjectData(projectData);
+      } else {
+        const projectData = JSON.parse(textContent);
+        applyProjectData(projectData);
+      }
+    }
+  } catch (err) {
+    toast('Could not open file: ' + err.message);
+  }
+}
+
+window.addEventListener('dragover', e => e.preventDefault());
+window.addEventListener('drop', e => {
+  e.preventDefault();
+  const file = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+  if (file) loadProjectFile(file);
+});
+
+// --- Top Bar Actions ---
+$('topNewBtn').onclick = () => {
+  if (confirm('Start a new blueprint canvas? Unsaved modifications will be cleared.')) {
+    recordHistory();
+    layers = [{
+      id: 1,
+      name: 'Main Geometry',
+      visible: true,
+      locked: false,
+      opacity: 1.0,
+      blendMode: 'source-over',
+      objects: []
+    }];
+    activeLayerId = 1;
+    selectedObjectId = null;
+    nextObjectId = 100;
+    nextLayerId = 2;
+    pan = { x: 0, y: 0 };
+    zoom = 1.0;
+    $('statusZoomBadge').textContent = '100%';
+    markLayersDirty();
+    renderLayers();
+    renderCanvas();
+    toast('New drafting board initialized');
+  }
+};
+
+$('topUndoBtn').onclick = undo;
+$('topRedoBtn').onclick = redo;
+
+// --- Object Inspector Alignment, Rotation & Z-Order ---
+function alignSelectedObject(mode) {
+  if (!selectedObjectId) return toast('Select an object to align');
+  const found = findObject(selectedObjectId);
+  if (!found) return;
+  recordHistory();
+  const b = getObjectBounds(found.obj);
+  const stageW = stage.clientWidth / zoom;
+  const stageH = stage.clientHeight / zoom;
+  const viewLeft = -pan.x / zoom;
+  const viewTop = -pan.y / zoom;
+
+  let dx = 0, dy = 0;
+  if (mode === 'left') dx = viewLeft + 40 - b.x;
+  else if (mode === 'center') dx = (viewLeft + stageW / 2) - (b.x + b.w / 2);
+  else if (mode === 'right') dx = (viewLeft + stageW - 40) - (b.x + b.w);
+  else if (mode === 'top') dy = viewTop + 40 - b.y;
+  else if (mode === 'middle') dy = (viewTop + stageH / 2) - (b.y + b.h / 2);
+  else if (mode === 'bottom') dy = (viewTop + stageH - 40) - (b.y + b.h);
+
+  const o = found.obj;
+  if (['line', 'arrow', 'dimension'].includes(o.type)) {
+    o.x1 += dx; o.x2 += dx; o.y1 += dy; o.y2 += dy;
+  } else if (o.type === 'pen' && o.points) {
+    o.points.forEach(p => { p.x += dx; p.y += dy; });
+  } else {
+    o.x += dx; o.y += dy;
+  }
+  markLayersDirty();
+  renderCanvas();
+  toast(`Aligned ${mode}`);
+}
+
+$('objAlignLBtn').onclick = () => alignSelectedObject('left');
+$('objAlignCBtn').onclick = () => alignSelectedObject('center');
+$('objAlignRBtn').onclick = () => alignSelectedObject('right');
+$('objAlignTBtn').onclick = () => alignSelectedObject('top');
+$('objAlignMBtn').onclick = () => alignSelectedObject('middle');
+$('objAlignBBtn').onclick = () => alignSelectedObject('bottom');
+
+function rotateSelectedObject(deg) {
+  if (!selectedObjectId) return toast('Select an object to rotate');
+  const found = findObject(selectedObjectId);
+  if (!found) return;
+  recordHistory();
+  const b = getObjectBounds(found.obj);
+  const cx = b.x + b.w / 2;
+  const cy = b.y + b.h / 2;
+  const rad = (deg * Math.PI) / 180;
+  const cos = Math.cos(rad);
+  const sin = Math.sin(rad);
+
+  const rotatePt = (x, y) => ({
+    x: cx + (x - cx) * cos - (y - cy) * sin,
+    y: cy + (x - cx) * sin + (y - cy) * cos
+  });
+
+  const o = found.obj;
+  if (['line', 'arrow', 'dimension'].includes(o.type)) {
+    const p1 = rotatePt(o.x1, o.y1);
+    const p2 = rotatePt(o.x2, o.y2);
+    o.x1 = p1.x; o.y1 = p1.y; o.x2 = p2.x; o.y2 = p2.y;
+  } else if (o.type === 'pen' && o.points) {
+    o.points = o.points.map(p => rotatePt(p.x, p.y));
+  } else {
+    const p = rotatePt(o.x, o.y);
+    o.x = p.x; o.y = p.y;
+    if (Math.abs(deg) === 90) {
+      const temp = o.w; o.w = o.h; o.h = temp;
+    }
+  }
+  markLayersDirty();
+  renderCanvas();
+  toast(`Rotated ${deg}°`);
+}
+
+$('objRot90Btn').onclick = () => rotateSelectedObject(90);
+$('objRot45Btn').onclick = () => rotateSelectedObject(45);
+
+$('objToFrontBtn').onclick = () => {
+  if (!selectedObjectId) return;
+  const curL = getActiveLayer();
+  const idx = curL.objects.findIndex(o => o.id === selectedObjectId);
+  if (idx < 0) return;
+  recordHistory();
+  const [o] = curL.objects.splice(idx, 1);
+  curL.objects.push(o);
+  markLayersDirty();
+  renderCanvas();
+  renderLayers();
+  toast('Moved to front');
+};
+
+$('objToBackBtn').onclick = () => {
+  if (!selectedObjectId) return;
+  const curL = getActiveLayer();
+  const idx = curL.objects.findIndex(o => o.id === selectedObjectId);
+  if (idx < 0) return;
+  recordHistory();
+  const [o] = curL.objects.splice(idx, 1);
+  curL.objects.unshift(o);
+  markLayersDirty();
+  renderCanvas();
+  renderLayers();
+  toast('Moved to back');
+};
+
+// --- Layer Operations ---
+$('layerMergeBtn').onclick = () => {
+  if (layers.length <= 1) return toast('Need at least 2 layers to merge');
+  const idx = layers.findIndex(l => l.id === activeLayerId);
+  if (idx <= 0) return toast('Cannot merge bottom layer down');
+  recordHistory();
+  const cur = layers[idx];
+  const target = layers[idx - 1];
+  target.objects.push(...cur.objects);
+  layers.splice(idx, 1);
+  activeLayerId = target.id;
+  selectedObjectId = null;
+  markLayersDirty();
+  renderLayers();
+  renderCanvas();
+  toast(`Merged ${cur.name} into ${target.name}`);
+};
+
+// --- Pro Metadata Live Bindings ---
+['metaDrawingTitle', 'metaDrafter', 'metaDrawingNo', 'metaScale', 'metaRev'].forEach(id => {
+  const el = $(id);
+  if (!el) return;
+  el.oninput = () => {
+    state.metadata.title = $('metaDrawingTitle').value;
+    state.metadata.drafter = $('metaDrafter').value;
+    state.metadata.drawingNo = $('metaDrawingNo').value;
+    state.metadata.scale = $('metaScale').value;
+    state.metadata.rev = $('metaRev').value;
+    if (state.showTitleBlock) renderCanvas();
+  };
+});
+
+// --- Optics Sliders Bindings ---
+$('opticsRefr').oninput = e => { state.optics.refraction = +e.target.value / 100; renderCanvas(); };
+$('opticsChroma').oninput = e => { state.optics.chromaDispersion = +e.target.value / 100; renderCanvas(); };
+$('opticsBlur').oninput = e => { state.optics.blur = +e.target.value; renderCanvas(); };
+$('swGlassShine').onclick = () => {
+  state.optics.shine = !state.optics.shine;
+  $('swGlassShine').classList.toggle('active', state.optics.shine);
+  document.body.classList.toggle('noshine', !state.optics.shine);
+};
+
+// --- Technical Lettering Text Modal ---
+$('technicalTextSize').oninput = e => {
+  $('fontSizeDisplay').textContent = e.target.value;
+};
+
+$('closeTextModalBtn').onclick = $('cancelTextModalBtn').onclick = () => {
+  $('textModal').classList.remove('open');
+  pendingTextPos = null;
+};
+
+$('confirmTextModalBtn').onclick = () => {
+  const text = $('technicalTextInput').value.trim();
+  if (!text) return toast('Please enter text');
+  if (!pendingTextPos) pendingTextPos = { x: -pan.x / zoom + 100, y: -pan.y / zoom + 100 };
+  recordHistory();
+  const font = $('technicalTextFont').value;
+  const size = +$('technicalTextSize').value || 24;
+  const txtObj = {
+    id: nextObjectId++,
+    type: 'text',
+    x: pendingTextPos.x,
+    y: pendingTextPos.y,
+    text,
+    font,
+    size,
+    stroke: state.strokeColor,
+    opacity: state.opacity
+  };
+  getActiveLayer().objects.push(txtObj);
+  selectedObjectId = txtObj.id;
+  $('textModal').classList.remove('open');
+  $('technicalTextInput').value = '';
+  pendingTextPos = null;
+  markLayersDirty();
+  renderCanvas();
+  renderLayers();
+  toast('Technical lettering placed');
+};
+
+// --- Brush Studio (.brs) & Scratchpad ---
+const scratchpad = $('scratchpadCanvas');
+const spCtx = scratchpad.getContext('2d');
+let isSpDrawing = false;
+let spPoints = [];
+
+function clearScratchpad() {
+  spCtx.fillStyle = '#031530';
+  spCtx.fillRect(0, 0, scratchpad.width, scratchpad.height);
+  spCtx.strokeStyle = 'rgba(82, 220, 255, 0.2)';
+  spCtx.strokeRect(0, 0, scratchpad.width, scratchpad.height);
+}
+clearScratchpad();
+
+scratchpad.addEventListener('pointerdown', e => {
+  scratchpad.setPointerCapture(e.pointerId);
+  isSpDrawing = true;
+  const r = scratchpad.getBoundingClientRect();
+  spPoints = [{ x: e.clientX - r.left, y: e.clientY - r.top }];
+});
+
+scratchpad.addEventListener('pointermove', e => {
+  if (!isSpDrawing) return;
+  const r = scratchpad.getBoundingClientRect();
+  spPoints.push({ x: e.clientX - r.left, y: e.clientY - r.top });
+  clearScratchpad();
+  const previewBrush = {
+    brushEngine: $('bsType').value,
+    width: +$('bsWidth').value || 12,
+    stroke: state.strokeColor,
+    points: spPoints
+  };
+  renderAdvancedBrushPath(spCtx, previewBrush);
+});
+
+const endSp = () => { isSpDrawing = false; };
+scratchpad.addEventListener('pointerup', endSp);
+scratchpad.addEventListener('pointercancel', endSp);
+
+$('openBrushStudioBtn').onclick = () => {
+  $('brushStudioModal').classList.add('open');
+  clearScratchpad();
+};
+$('closeBrushStudioBtn').onclick = () => $('brushStudioModal').classList.remove('open');
+$('clearScratchpadBtn').onclick = clearScratchpad;
+
+$('installBrsBtn').onclick = () => {
+  const name = $('bsName').value.trim() || 'Custom Brush';
+  const type = $('bsType').value;
+  const id = 'custom-' + Date.now();
+  const newBrush = { id, name, cat: 'Custom', type };
+  BRUSHES.push(newBrush);
+  initBrushGrid();
+  activeBrush = id;
+  document.querySelectorAll('.brush-card').forEach(c => c.classList.toggle('active', c.dataset.brushId === id));
+  $('brushStudioModal').classList.remove('open');
+  toast(`Brush "${name}" installed`);
+};
+
+$('exportBrsBtn').onclick = () => {
+  const brsData = {
+    format: 'BlueprintBrush',
+    version: 1,
+    name: $('bsName').value.trim() || 'Custom Brush',
+    type: $('bsType').value,
+    width: +$('bsWidth').value || 12,
+    specular: +$('bsSpecular').value || 80
+  };
+  downloadBlob(new Blob([JSON.stringify(brsData, null, 2)], { type: 'application/json' }), `${sanitizeFilename(brsData.name)}.brs`);
+  toast('Brush file saved (.brs)');
+};
+
+$('importBrsBtn').onclick = () => $('brsFileInput').click();
+$('brsFileInput').onchange = async e => {
+  const file = e.target.files[0];
+  if (!file) return;
+  try {
+    const data = JSON.parse(await file.text());
+    if (data.format !== 'BlueprintBrush' && !data.type) throw new Error('Invalid .brs brush file format');
+    const id = 'imported-' + Date.now();
+    const newBrush = { id, name: data.name || 'Imported Brush', cat: 'User', type: data.type || 'pen' };
+    BRUSHES.push(newBrush);
+    initBrushGrid();
+    activeBrush = id;
+    document.querySelectorAll('.brush-card').forEach(c => c.classList.toggle('active', c.dataset.brushId === id));
+    toast(`Brush "${newBrush.name}" imported and activated`);
+  } catch (err) {
+    toast('Failed to import brush: ' + err.message);
+  }
+  e.target.value = '';
+};
+
+// --- Plugin Architecture ---
+const installedPlugins = [
+  { id: 'electrical-pack', name: 'Electrical Schematics', version: '1.2.0', desc: 'Standard ANSI/IEEE logic gate and electrical circuit symbols.' },
+  { id: 'iso-dim-helper', name: 'Isometric Dimension Tool', version: '2.0.1', desc: 'Calibrated 30-degree isometric dimension annotations.' },
+  { id: 'centerline-tool', name: 'Centerline Axis Generator', version: '1.0.4', desc: 'Automatic shaft and bolt circle centerline generator.' }
+];
+
+function renderPluginList() {
+  const container = $('pluginList');
+  container.innerHTML = '';
+  installedPlugins.forEach(p => {
+    const div = document.createElement('div');
+    div.style.cssText = 'background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.14);border-radius:8px;padding:8px;display:flex;flex-direction:column;gap:3px;font-size:11px';
+    div.innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <strong style="color:var(--accent-cyan)">${p.name}</strong>
+        <span style="font-size:9px;color:var(--text-muted)">v${p.version}</span>
+      </div>
+      <div style="font-size:10px;color:var(--text-muted)">${p.desc}</div>
+    `;
+    container.appendChild(div);
+  });
+}
+renderPluginList();
+
+$('importPluginBtn').onclick = () => $('pluginFileInput').click();
+$('pluginFileInput').onchange = async e => {
+  const f = e.target.files[0];
+  if (!f) return;
+  try {
+    const d = JSON.parse(await f.text());
+    installedPlugins.push({
+      id: d.id || 'plg-' + Date.now(),
+      name: d.name || 'Custom Plugin',
+      version: d.version || '1.0.0',
+      desc: d.desc || 'User custom extension'
+    });
+    renderPluginList();
+    toast(`Plugin "${d.name || 'Custom Plugin'}" installed successfully`);
+  } catch (err) {
+    toast('Plugin file error: ' + err.message);
+  }
+  e.target.value = '';
+};
+
+$('openPluginMakerBtn').onclick = () => {
+  toast('Plugin API ready. Import any JSON/PLG manifest with custom CAD symbol libraries.');
+};
+
+// --- Initialization ---
+initBrushGrid();
+syncQuickPinBar();
+renderLayers();
+initWebGL();
+resizeCanvases();
+pan = { x: 0, y: 0 };
+renderCanvas();
+window.BlueprintStudio = { state, layers, getActiveLayer, getProjectData, renderCanvas, renderLayers, setTool };
+toast('Blueprint Studio CAD & Vector Suite Ready');
+
+})();
+</script>
+</body>
+</html>
